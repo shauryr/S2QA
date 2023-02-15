@@ -27,6 +27,14 @@ This Python script lets you enter a question, and it uses the power of Semantic 
 
 'Sleep training can lead to improved sleeping patterns, decreased parental stress, and increased parental competence. It can also lead to improved sleep efficiency, sleep onset latency, and sleep duration.'
 ```
+
+```python
+>> query = "What is the impact of creatine on cognition?"
+
+>> answer_question(df, question=query, debug=False)
+
+'Preliminary studies indicate that creatine supplementation (and guanidinoacetic acid; GAA) has the ability to increase brain creatine content in humans. Furthermore, creatine has shown some promise for attenuating symptoms of concussion, mild traumatic brain injury and depression but its effect on neurodegenerative diseases appears to be lacking. However, acute supplementation of creatine does not appear to enhance cognition in healthy subjects, and there is no evidence that creatine supplementation alters participant\'s cognitive function when acutely exposed to hypoxia.'
+```
 ---
 
 ## Requirements 🧰
