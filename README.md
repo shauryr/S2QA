@@ -1,4 +1,4 @@
-# 📚🤖 S2QA: QA on research papers
+# 📚🤖 S2QA: Question Answering on research papers from Semantic Scholar
 
 Have you ever wondered what research papers have to say about your burning questions? Look no further than Semantic Scholar Q&A with GPT-3! 🙌
 
