@@ -1,0 +1,2 @@
+S2_KEY = ''
+OPENAI_API_KEY = ''
