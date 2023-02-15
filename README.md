@@ -12,7 +12,7 @@ This Python script lets you enter a question, and it uses the power of Semantic 
 - `OpenAI API key`
 - `Semantic Scholar Academic Graph API key` - https://www.semanticscholar.org/product/api
 
-These can be added in the (constants.py)[constants.py]
+These can be added in the [constants.py](constants.py)
 
 ## Pipeline 🚀
 
