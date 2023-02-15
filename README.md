@@ -54,9 +54,9 @@ These can be added in the [constants.py](constants.py)
 
 ## Customizable 🖊️
 
-- Try other open embeddings methods on huggingface to see better re-ranking results. 
+- Try other open embedding methods on huggingface to see better re-ranking results. 
 
-- Try other prompts or refine the current prompt to get the best answer.
+- Try other prompts or refine the current prompt to get even better answers.
 
 ## TODO 👈
 
