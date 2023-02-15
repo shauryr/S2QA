@@ -7,6 +7,28 @@ This Python script lets you enter a question, and it uses the power of Semantic 
 - [s2qa_nb.ipynb](s2qa_nb.ipynb) - main notebook
 - [utils.py](utils.py) - has all the necessary functions for search and GPT-3  prompting
 
+----
+
+## Examples
+
+```python
+>> query = "How does iron supplementation affect anemia?"
+
+>> answer_question(df, question=query, debug=False)
+
+'Iron supplementation can reduce anemia in pregnant women with mild or no anemia, but it can also increase the risk of neonatal jaundice. Iron supplementation can also improve iron stores and decrease anemia in non-pregnant women, but it can also increase the risk of diarrhea. Good adherence and initiation of supplementation before conception are needed to reduce anemia during early pregnancy.'
+```
+
+
+```python
+>> query = "What are the effects of sleep training on infants?"
+
+>> answer_question(df, question=query, debug=False)
+
+'Sleep training can lead to improved sleeping patterns, decreased parental stress, and increased parental competence. It can also lead to improved sleep efficiency, sleep onset latency, and sleep duration.'
+```
+---
+
 ## Requirements 🧰
 
 - `OpenAI API key`
