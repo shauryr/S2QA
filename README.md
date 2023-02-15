@@ -4,8 +4,8 @@ Have you ever wondered what research papers have to say about your burning quest
 
 This Python script lets you enter a question, and it uses the power of Semantic Scholar and GPT-3 to generate an answer based on the content of the top research papers. 🤖🔍
 
-- [s2qa_nb.ipynb](s2qa_nb.ipynb) - Main notebook
-- [utils.py](utils.py) - Has all the necessary functions for search and GPT-3  prompting
+- [s2qa_nb.ipynb](s2qa_nb.ipynb) - main notebook
+- [utils.py](utils.py) - has all the necessary functions for search and GPT-3  prompting
 
 ## Requirements 🧰
 
