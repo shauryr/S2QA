@@ -13,7 +13,7 @@ This Python script lets you enter a question, and it uses the power of Semantic 
 
 Answers with sources and langchain mapreduce
 
-<img src="https://github.com/shauryr/S2QA/blob/master/demo.jpg" alt="Alt text" width="300">
+<img src="https://github.com/shauryr/S2QA/blob/master/demo.jpg" alt="s2 with langchain and sources" width="500">
 
 ```python
 >> query = "How does iron supplementation affect anemia?"
