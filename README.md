@@ -11,9 +11,11 @@ This Python script lets you enter a question, and it uses the power of Semantic 
 
 ## Examples
 
-Answers with sources and langchain mapreduce
+### Answers with sources and langchain mapreduce
 
 <img src="https://github.com/shauryr/S2QA/blob/master/demo.jpg" alt="s2 with langchain and sources" width="500">
+
+###  Answers with regular "stuffing" context
 
 ```python
 >> query = "How does iron supplementation affect anemia?"
@@ -22,7 +24,6 @@ Answers with sources and langchain mapreduce
 
 'Iron supplementation can reduce anemia in pregnant women with mild or no anemia, but it can also increase the risk of neonatal jaundice. Iron supplementation can also improve iron stores and decrease anemia in non-pregnant women, but it can also increase the risk of diarrhea. Good adherence and initiation of supplementation before conception are needed to reduce anemia during early pregnancy.'
 ```
-
 
 ```python
 >> query = "What are the effects of sleep training on infants?"
