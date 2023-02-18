@@ -11,6 +11,10 @@ This Python script lets you enter a question, and it uses the power of Semantic 
 
 ## Examples
 
+Answers with sources and langchain mapreduce
+
+![s2_langchain](https://imgur.com/oqpKkZF "demo")
+
 ```python
 >> query = "How does iron supplementation affect anemia?"
 
