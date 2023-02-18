@@ -6,7 +6,7 @@ This Python script lets you enter a question, and it uses the power of Semantic 
 
 - [s2qa_nb.ipynb](s2qa_nb.ipynb) - main notebook
 - [utils.py](utils.py) - has all the necessary functions for search and GPT-3  prompting
-
+- [test_quries.ipynb](test_quries.ipynb) - Get better answers with langchain mapreduce but this is very expensive. This returns the sources of the results as well.
 ----
 
 ## Examples
@@ -28,13 +28,8 @@ This Python script lets you enter a question, and it uses the power of Semantic 
 'Sleep training can lead to improved sleeping patterns, decreased parental stress, and increased parental competence. It can also lead to improved sleep efficiency, sleep onset latency, and sleep duration.'
 ```
 
-```python
->> query = "What is the impact of creatine on cognition?"
 
->> answer_question(df, question=query, debug=False)
 
-'Preliminary studies indicate that creatine supplementation (and guanidinoacetic acid; GAA) has the ability to increase brain creatine content in humans. Furthermore, creatine has shown some promise for attenuating symptoms of concussion, mild traumatic brain injury and depression but its effect on neurodegenerative diseases appears to be lacking. However, acute supplementation of creatine does not appear to enhance cognition in healthy subjects, and there is no evidence that creatine supplementation alters participant\'s cognitive function when acutely exposed to hypoxia.'
-```
 ---
 
 ## Requirements 🧰
@@ -43,6 +38,13 @@ This Python script lets you enter a question, and it uses the power of Semantic 
 - `Semantic Scholar Academic Graph API key` - https://www.semanticscholar.org/product/api
 
 These can be added in the [constants.py](constants.py)
+
+The main third-party package requirements are `tiktoken`, `openai`, `huggingface` and `langchain`.
+
+To install all the required packages
+```
+pip install -r requirements.txt
+```
 
 ## Pipeline 🚀
 
