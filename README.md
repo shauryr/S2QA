@@ -39,7 +39,7 @@ This Python script lets you enter a question, and it uses the power of Semantic 
 
 These can be added in the [constants.py](constants.py)
 
-The main third-party package requirements are `tiktoken`, `openai`, `huggingface` and `langchain`.
+The main third-party package requirements are `tiktoken`, `openai`, `transformers` and `langchain`.
 
 To install all the required packages
 ```
