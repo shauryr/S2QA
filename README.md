@@ -6,7 +6,7 @@ This Python script lets you enter a question, and it uses the power of Semantic 
 
 - [s2qa_nb.ipynb](s2qa_nb.ipynb) - main notebook
 - [utils.py](utils.py) - has all the necessary functions for search and GPT-3  prompting
-- [test_quries.ipynb](test_quries.ipynb) - Get better answers with langchain mapreduce but this is very expensive. This returns the sources of the results as well.
+- [s2qa_sources_langchain.ipynb](s2qa_sources_langchain.ipynb) - Get better answers with langchain mapreduce but this is very expensive. This returns the sources of the results as well.
 ----
 
 ## Examples
