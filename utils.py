@@ -3,42 +3,98 @@ import requests
 import nltk
 from transformers import AutoTokenizer, AutoModel
 import openai
+from sklearn.metrics.pairwise import cosine_similarity
+import pandas as pd
+import langchain
+from langchain.prompts import PromptTemplate
+from langchain.chains.qa_with_sources import load_qa_with_sources_chain
+from langchain.llms import OpenAI
+from IPython.display import display, Markdown
 
-# important functions
-tokenizer = AutoTokenizer.from_pretrained('allenai/specter')
-model = AutoModel.from_pretrained('allenai/specter')
+tokenizer = AutoTokenizer.from_pretrained("allenai/specter")
+model = AutoModel.from_pretrained("allenai/specter")
 
-def search(query, limit=20, fields=['title', 'abstract']):
+
+def search(query, limit=20, fields=["title", "abstract", "venue", "year"]):
     # space between the  query to be removed and replaced with +
-    query = query.replace(' ', '+')
+    query = query.replace(" ", "+")
     url = f'https://api.semanticscholar.org/graph/v1/paper/search?query={query}&limit={limit}&fields={",".join(fields)}'
-    headers = {
-        'Accept': '*/*',
-        'X-API-Key': constants.S2_KEY
-    }
-    
+    headers = {"Accept": "*/*", "X-API-Key": constants.S2_KEY}
+
     response = requests.get(url, headers=headers)
     return response.json()
+
+
+def get_results(query):
+    """ """
+    search_results = search(preprocess_query(query))
+
+    if search_results["total"] == 0:
+        print("No results found - Try another query")
+    else:
+        df = pd.DataFrame(search_results["data"]).dropna()
+
+    return df
+
+
+def get_doc_objects_from_df(df):
+    """
+    Get a list of Document objects from a dataframe
+    """
+    doc_objects = []
+    for i, row in df.iterrows():
+        doc_object = langchain.docstore.document.Document(
+            page_content=row["abstract"],
+            metadata={"source": row["paperId"]},
+            lookup_index=i,
+        )
+        doc_objects.append(doc_object)
+    return doc_objects
+
+
+def rerank(df, query):
+    # merge columns title and abstract into a string separated by tokenizer.sep_token and store it in a list
+    df["title_abs"] = [
+        d["title"] + tokenizer.sep_token + (d.get("abstract") or "")
+        for d in df.to_dict("records")
+    ]
+
+    df["title_abs"] = [
+        d["title"] + tokenizer.sep_token + (d.get("abstract") or "")
+        for d in df.to_dict("records")
+    ]
+    df["n_tokens"] = df.title_abs.apply(lambda x: len(tokenizer.encode(x)))
+    doc_embeddings = get_specter_embeddings(list(df["title_abs"]))
+    query_embeddings = get_specter_embeddings(query)
+    df["specter_embeddings"] = list(doc_embeddings)
+    df["similarity"] = cosine_similarity(query_embeddings, doc_embeddings).flatten()
+
+    # sort the dataframe by similarity
+    df.sort_values(by="similarity", ascending=False, inplace=True)
+    return df, query
+
 
 # function to preprocess the query and remove the stopwords before passing it to the search function
 def preprocess_query(query):
     query = query.lower()
     # remove stopwords from the query
-    stopwords = set(nltk.corpus.stopwords.words('english'))
-    query = ' '.join([word for word in query.split() if word not in stopwords])
+    stopwords = set(nltk.corpus.stopwords.words("english"))
+    query = " ".join([word for word in query.split() if word not in stopwords])
     return query
+
 
 def get_specter_embeddings(text):
     # tokenize the text
-    tokens = tokenizer(text, padding=True, truncation=True, return_tensors='pt', max_length=512)
+    tokens = tokenizer(
+        text, padding=True, truncation=True, return_tensors="pt", max_length=512
+    )
     # get the embeddings
     embeddings = model(**tokens).pooler_output
     # return the embeddings
     return embeddings.detach().numpy()
 
-def create_context(
-    question, df, max_len=3800, size="davinci"
-):
+
+def create_context(question, df, max_len=3800, size="davinci"):
     """
     Create a context for a question by finding the most similar context from the dataframe
     """
@@ -48,19 +104,20 @@ def create_context(
 
     # Sort by distance and add the text to the context until the context is too long
     for i, row in df.iterrows():
-        
+
         # Add the length of the text to the current length
-        cur_len += row['n_tokens'] + 4
-        
+        cur_len += row["n_tokens"] + 4
+
         # If the context is too long, break
         if cur_len > max_len:
             break
-        
+
         # Else add it to the text that is being returned
         returns.append(row["title_abs"])
 
     # Return the context
     return "\n\n###\n\n".join(returns)
+
 
 def answer_question(
     df,
@@ -70,7 +127,7 @@ def answer_question(
     size="ada",
     debug=False,
     max_tokens=150,
-    stop_sequence=None
+    stop_sequence=None,
 ):
     """
     Answer a question based on the most similar context from the dataframe texts
@@ -89,7 +146,7 @@ def answer_question(
     try:
         # Create a completions using the question and context
         response = openai.Completion.create(
-            prompt=f"Answer the question based on the context below\"\n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:",
+            prompt=f'Answer the question based on the context below"\n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:',
             temperature=0,
             max_tokens=max_tokens,
             top_p=1,
@@ -103,3 +160,78 @@ def answer_question(
         print(e)
         return ""
 
+
+def get_langchain_response(docs, query, k=5):
+    """
+    Get the langchain response for a query. Here we are using the langchain mapreduce function to get the response.
+    Prompts here should be played around with. These are the prompts that worked best for us.
+    """
+    question_prompt_template = """Use the following portion of a long document to see if any of the text is relevant to answer the question. 
+
+    {context}
+    Question: {question}
+    Relevant text, if any:"""
+    QUESTION_PROMPT = PromptTemplate(
+        template=question_prompt_template, input_variables=["context", "question"]
+    )
+
+    combine_prompt_template = """Given the following extracted parts of a scientific paper and a question.  
+    If you don't know the answer, just say that you don't know. Don't try to make up an answer.
+    Create a final answer with references ("SOURCES")
+    ALWAYS return a "SOURCES" part at the end of your answer. Return sources as a list of strings, e.g. ["source1", "source2", ...]
+
+    QUESTION: {question}
+    =========
+    {summaries}
+    =========
+    FINAL ANSWER:"""
+    COMBINE_PROMPT = PromptTemplate(
+        template=combine_prompt_template, input_variables=["summaries", "question"]
+    )
+
+    chain = load_qa_with_sources_chain(
+        OpenAI(temperature=0, openai_api_key=constants.OPENAI_API_KEY),
+        chain_type="map_reduce",
+        return_intermediate_steps=True,
+        question_prompt=QUESTION_PROMPT,
+        combine_prompt=COMBINE_PROMPT,
+    )
+    chain_out = chain(
+        {"input_documents": docs[:k], "question": query}, return_only_outputs=True
+    )
+    return chain_out
+
+def return_answer_markdown(chain_out, df, query):
+    """ 
+    Parse the output_text and sources from the chain_out JSON and return a markdown string
+    """
+    output_text = chain_out["output_text"].split("\n\nSOURCES: ")[0].strip()
+    if chain_out["output_text"].endswith("]"):
+        sources = eval(chain_out["output_text"].split("SOURCES:")[1].strip())
+    else:
+        sources = eval(chain_out["output_text"].split("SOURCES:")[1].strip() + '"]')
+
+    # Creating a new JSON with the extracted output_text and sources
+    output_text = {"output_text": output_text, "sources": sources}
+
+    # Printing the new JSON
+    display(Markdown(f"## Question\n\n"))
+
+    display(Markdown(f"### {query}\n\n"))
+
+    display(Markdown(f"## Answer\n\n"))
+
+    display(Markdown(f"### {output_text['output_text']}\n\n"))
+
+    display(Markdown(f"## Sources: \n\n"))
+
+    # markdown headings for each source
+    for source in output_text["sources"]:
+        try:
+            title = df[df["paperId"] == source]["title"].values[0]
+            link = f"https://www.semanticscholar.org/paper/{source}"
+            venue = df[df["paperId"] == source]["venue"].values[0]
+            year = df[df["paperId"] == source]["year"].values[0]
+            display(Markdown(f"* #### [{title}]({link}) - {venue}, {year}"))
+        except:
+            display(Markdown(f"Source not found: {source}"))
