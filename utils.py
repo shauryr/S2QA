@@ -11,8 +11,8 @@ from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.llms import OpenAI
 from IPython.display import display, Markdown
 
-tokenizer = AutoTokenizer.from_pretrained("allenai/specter")
-model = AutoModel.from_pretrained("allenai/specter")
+tokenizer = AutoTokenizer.from_pretrained("allenai/specter_plus_plus")
+model = AutoModel.from_pretrained("allenai/specter_plus_plus")
 
 
 def search(query, limit=20, fields=["title", "abstract", "venue", "year"]):
@@ -25,9 +25,9 @@ def search(query, limit=20, fields=["title", "abstract", "venue", "year"]):
     return response.json()
 
 
-def get_results(query):
+def get_results(query, limit=20):
     """ """
-    search_results = search(preprocess_query(query))
+    search_results = search(preprocess_query(query), limit)
 
     if search_results["total"] == 0:
         print("No results found - Try another query")
@@ -202,7 +202,7 @@ def get_langchain_response(docs, query, k=5):
     return chain_out
 
 def return_answer_markdown(chain_out, df, query):
-    """ 
+    """
     Parse the output_text and sources from the chain_out JSON and return a markdown string
     """
     output_text = chain_out["output_text"].split("\n\nSOURCES: ")[0].strip()
