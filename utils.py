@@ -52,19 +52,15 @@ def get_doc_objects_from_df(df):
     return doc_objects
 
 
-def rerank(df, query):
+def rerank(df, query, column_name="title_abs"):
     # merge columns title and abstract into a string separated by tokenizer.sep_token and store it in a list
     df["title_abs"] = [
         d["title"] + tokenizer.sep_token + (d.get("abstract") or "")
         for d in df.to_dict("records")
     ]
 
-    df["title_abs"] = [
-        d["title"] + tokenizer.sep_token + (d.get("abstract") or "")
-        for d in df.to_dict("records")
-    ]
     df["n_tokens"] = df.title_abs.apply(lambda x: len(tokenizer.encode(x)))
-    doc_embeddings = get_specter_embeddings(list(df["title_abs"]))
+    doc_embeddings = get_specter_embeddings(list(df[column_name]))
     query_embeddings = get_specter_embeddings(query)
     df["specter_embeddings"] = list(doc_embeddings)
     df["similarity"] = cosine_similarity(query_embeddings, doc_embeddings).flatten()
@@ -201,6 +197,7 @@ def get_langchain_response(docs, query, k=5):
     )
     return chain_out
 
+
 def return_answer_markdown(chain_out, df, query):
     """
     Parse the output_text and sources from the chain_out JSON and return a markdown string
@@ -235,3 +232,61 @@ def return_answer_markdown(chain_out, df, query):
             display(Markdown(f"* #### [{title}]({link}) - {venue}, {year}"))
         except:
             display(Markdown(f"Source not found: {source}"))
+
+def print_papers(df, k=8):
+    count = 1
+    for i in range(k):
+        # add index
+        title = df.iloc[i]["title"]
+        link = f"https://www.semanticscholar.org/paper/{df.iloc[i]['paperId']}"
+        venue = df.iloc[i]["venue"]
+        year = df.iloc[i]["year"]
+        display(Markdown(f"#### {[count]} [{title}]({link}) - {venue}, {year}"))
+        count+=1
+
+def answer_question_chatgpt(
+    df,
+    question="What is the impact of creatine on cognition?",
+    k=5,
+    instructions="Instructions: Using the provided web search results, write a comprehensive reply to the given query. If you find a result relevant definitely make sure to cite the result using [[number](URL)] notation after the reference. End your answer with a summary. A\nQuery:",
+    max_len=3000,
+    debug=False,
+):
+    """
+    Answer a question based on the most similar context from the dataframe texts
+    """
+    context = create_context_chatgpt(question, df, k=k)
+
+    try:
+        # Create a completions using the question and context
+        # prompt = f'''{context} \n\n Instructions: Using the provided literature with sources, write a comprehensive reply to the given query. Make sure to cite results using [[number](URL)] notation after the reference. If the provided search results refer to multiple subjects with the same name, write separate answers for each subject. You can skip a citation which you dont find relevant to the query. \nQuery:{question}\nAnswer:'''
+        prompt = f"""{context} \n\n{instructions} {question}\nAnswer:"""
+        return prompt
+    except Exception as e:
+        print(e)
+        return ""
+
+
+def create_context_chatgpt(question, df, k=5):
+    """
+    Create a context for a question by finding the most similar context from the dataframe
+    """
+
+    returns = []
+    count = 1
+    # Sort by distance and add the text to the context until the context is too long
+    for i, row in df[:k].iterrows():
+
+        # Else add it to the text that is being returned
+        returns.append(
+            "["
+            + str(count)
+            + "] "
+            + row["tldr"]
+            + "\nURL: "
+            + "https://www.semanticscholar.org/paper/"
+            + row["paperId"]
+        )
+        count += 1
+    # Return the context
+    return "\n\n".join(returns)
