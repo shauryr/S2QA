@@ -4,7 +4,7 @@ Have you ever wondered what research papers have to say about your burning quest
 
 This Python script lets you enter a question, and it uses the power of Semantic Scholar and GPT-3 to generate an answer based on the content of the top research papers. 🤖🔍
 
-- [chat_qa.ipynb](chat_qa.ipynb) ⭐ Get answers from ChatGPT. This gives the best answers and is free. Seems less prone to hallucinations than other pipelines in this repo. 
+- [chat_qa.ipynb](chat_qa.ipynb) ⭐ Get answers from ChatGPT(using revChatGPT). This gives the best answers and is free. Seems less prone to hallucinations than other pipelines in this repo. 
 - [utils.py](utils.py) - has all the necessary functions for search and GPT-3  prompting
 - [s2qa_sources_langchain.ipynb](s2qa_sources_langchain.ipynb) - Get better answers with langchain mapreduce but this is very expensive. Prone to hallucinations.
 - [s2qa_nb.ipynb](s2qa_nb.ipynb) - first notebook. Very basic QA. Prone to hallucinations.
@@ -85,7 +85,7 @@ Overall, transformers have had a significant impact on language, particularly in
 
 These can be added in the [constants.py](constants.py)
 
-The main third-party package requirements are `tiktoken`, `openai`, `transformers` and `langchain`.
+The main third-party package requirements are `revChatGPT`, `tiktoken`, `openai`, `transformers` and `langchain`.
 
 To install all the required packages
 ```
