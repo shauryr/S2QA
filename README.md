@@ -15,7 +15,7 @@ Caution should be exercised when using generative AI for scientific text, as the
 
 ## Examples
 
-# 🤖 Getting answers from ChatGPT (coming soon)
+# 🤖 Getting answers from ChatGPT [chat_qa.ipynb](chat_qa.ipynb)
 ---
 ## Question
 
