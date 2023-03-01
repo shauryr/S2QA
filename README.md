@@ -80,8 +80,9 @@ Overall, transformers have had a significant impact on language, particularly in
 
 ## Requirements 🧰
 
-- `OpenAI API key`
+- `OpenAI API key` (if you are using langchain)
 - `Semantic Scholar Academic Graph API key` - https://www.semanticscholar.org/product/api
+- `OpenAI credentials` (if you are using revChatGPT) - email and password
 
 These can be added in the [constants.py](constants.py)
 
