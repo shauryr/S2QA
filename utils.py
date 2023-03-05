@@ -19,7 +19,7 @@ def search(query, limit=20, fields=["title", "abstract", "venue", "year"]):
     # space between the  query to be removed and replaced with +
     query = query.replace(" ", "+")
     url = f'https://api.semanticscholar.org/graph/v1/paper/search?query={query}&limit={limit}&fields={",".join(fields)}'
-    headers = {"Accept": "*/*", "x-api-key": constants.S2_KEY}
+    headers = {"Accept": "*/*", "X-API-Key": constants.S2_KEY}
 
     response = requests.get(url, headers=headers)
     return response.json()
