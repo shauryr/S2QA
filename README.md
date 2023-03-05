@@ -4,6 +4,8 @@ Have you ever wondered what research papers have to say about your burning quest
 
 This Python script lets you enter a question, and it uses the power of Semantic Scholar and GPT-3 to generate an answer based on the content of the top research papers. 🤖🔍
 
+![Demo](Demo-for-S2QA-Imgur.gif)
+
 - [chat_qa.ipynb](chat_qa.ipynb) ⭐ sends the context to ChatGPT(using revChatGPT) for generating answers. This gives the best answers and is free. Seems less prone to hallucinations than other pipelines in this repo. 
 - [utils.py](utils.py) - has all the necessary functions for search and GPT-3  prompting
 - [s2qa_sources_langchain.ipynb](s2qa_sources_langchain.ipynb) - Get better answers with langchain mapreduce but this is very expensive. Prone to hallucinations.
@@ -21,7 +23,6 @@ Caution should be exercised when using generative AI for scientific text, as the
 ##  Demo - 
 [chat_qa.ipynb](chat_qa.ipynb)
 
-![Demo](Demo-for-S2QA-Imgur.gif)
 ----
 ## Question
 
