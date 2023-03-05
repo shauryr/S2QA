@@ -10,16 +10,18 @@ from langchain.prompts import PromptTemplate
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.llms import OpenAI
 from IPython.display import display, Markdown
+import streamlit as st
 
-tokenizer = AutoTokenizer.from_pretrained("allenai/specter_plus_plus")
-model = AutoModel.from_pretrained("allenai/specter_plus_plus")
+
+tokenizer = AutoTokenizer.from_pretrained("allenai/specter2")
+model = AutoModel.from_pretrained("allenai/specter2")
 
 
 def search(query, limit=20, fields=["title", "abstract", "venue", "year"]):
     # space between the  query to be removed and replaced with +
     query = query.replace(" ", "+")
     url = f'https://api.semanticscholar.org/graph/v1/paper/search?query={query}&limit={limit}&fields={",".join(fields)}'
-    headers = {"Accept": "*/*", "X-API-Key": constants.S2_KEY}
+    headers = {"Accept": "*/*", "x-api-key": constants.S2_KEY}
 
     response = requests.get(url, headers=headers)
     return response.json()
@@ -32,7 +34,10 @@ def get_results(query, limit=20):
     if search_results["total"] == 0:
         print("No results found - Try another query")
     else:
-        df = pd.DataFrame(search_results["data"]).dropna()
+        # drop rows with missing abstracts and titles
+        df = pd.DataFrame(search_results["data"])
+        df = df.dropna(subset=["title"])
+        # replace NA with empty string
 
     return df
 
@@ -233,6 +238,7 @@ def return_answer_markdown(chain_out, df, query):
         except:
             display(Markdown(f"Source not found: {source}"))
 
+
 def print_papers(df, k=8):
     count = 1
     for i in range(k):
@@ -242,7 +248,20 @@ def print_papers(df, k=8):
         venue = df.iloc[i]["venue"]
         year = df.iloc[i]["year"]
         display(Markdown(f"#### {[count]} [{title}]({link}) - {venue}, {year}"))
-        count+=1
+        count += 1
+
+
+def print_papers_streamlit(df, k=8):
+    count = 1
+    for i in range(k):
+        # add index
+        title = df.iloc[i]["title"]
+        link = f"https://www.semanticscholar.org/paper/{df.iloc[i]['paperId']}"
+        venue = df.iloc[i]["venue"]
+        year = df.iloc[i]["year"]
+        st.markdown(f"{[count]} [{title}]({link}) - {venue}, {year}")
+        count += 1
+
 
 def answer_question_chatgpt(
     df,
