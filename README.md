@@ -21,6 +21,7 @@ Caution should be exercised when using generative AI for scientific text, as the
 ##  Demo - 
 [chat_qa.ipynb](chat_qa.ipynb)
 
+![Demo](Demo-for-S2QA-Imgur.gif)
 ----
 ## Question
 
