@@ -6,7 +6,7 @@ This Python script lets you enter a question, and it uses the power of Semantic 
 
 ![Demo](assets/Demo-for-S2QA-Imgur.gif)
 
-- [chat_qa.ipynb](assets/chat_qa.ipynb) ⭐ sends the context to ChatGPT(using revChatGPT) for generating answers. This gives the best answers and is free. Seems less prone to hallucinations than other pipelines in this repo. 
+- [chat_qa.ipynb](notebooks/chat_qa.ipynb) ⭐ sends the context to ChatGPT(using revChatGPT) for generating answers. This gives the best answers and is free. Seems less prone to hallucinations than other pipelines in this repo. 
 - [utils.py](notebooks/utils.py) - has all the necessary functions for search and GPT-3  prompting
 - [s2qa_sources_langchain.ipynb](notebooks/s2qa_sources_langchain.ipynb) - Get better answers with langchain mapreduce but this is very expensive. Prone to hallucinations.
 - [s2qa_nb.ipynb](notebooks/s2qa_nb.ipynb) - first notebook. Very basic QA. Prone to hallucinations.
