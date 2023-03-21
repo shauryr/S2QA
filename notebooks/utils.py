@@ -1,4 +1,4 @@
-import constants
+import S2QA.notebooks.constants as constants
 import requests
 import nltk
 from transformers import AutoTokenizer, AutoModel
