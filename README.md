@@ -56,7 +56,9 @@ Overall, transformers have had a significant impact on language, particularly in
 
 ## 🤖 Answers with sources and langchain mapreduce
 
-<img src="https://github.com/shauryr/S2QA/blob/master/demo.jpg" alt="s2 with langchain and sources" width="500">
+<!-- <img src="https://github.com/shauryr/S2QA/blob/master/demo.jpg" alt="s2 with langchain and sources" width="500"> -->
+
+![Demo](assets/demo.jpg)
 
 ## 🤖 Answers with regular "stuffing" context
 
