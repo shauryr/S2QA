@@ -88,7 +88,7 @@ def generate_prompt(df, query):
 def generate_answer(prompt):
     """Generates an answer using ChatGPT."""
     response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-3.5-turbo",
         messages=[
             {
                 "role": "system",
@@ -169,7 +169,7 @@ def app():
     )
 
     # Add the button to the empty container
-    button = st.button("Generate Answer")
+    button = st.button("Generate Answer", type='primary')
     st.markdown(
         "<h7 style='text-align: left;'>🚨 Generating an answer may take approximately 60 seconds as GPT-4 is slow</h7>",
         unsafe_allow_html=True,
@@ -204,24 +204,41 @@ def app():
         df = df[:K]
         with st.spinner(f"⏳ Generating summaries for top-{df.shape[0]} abstracts ..."):
             df["tldr"] = df["title_abs"].progress_apply(get_response)
-        # elapsed_time = time.time() - start_time
-        # st.success(f"🙌 Summaries extracted successfully! 🕰️ Time taken {elapsed_time:.2f} seconds.")
 
         # Generate prompt for the model to answer the question
         prompt = generate_prompt(df, query)
-
+        st.markdown("### ❓Question:")
+        st.markdown(f"#### {query}")
+        st.markdown("### 🤖 Generated Answer:")
         try:
-            with st.spinner("GPT-4 is generating your answer ..."):
-                response = generate_answer(prompt)
-                elapsed_time = time.time() - start_time
-                st.success(
-                    f"🙌 ChatGPT finished generating an answer!  🕰️ Time taken {elapsed_time:.2f} seconds."
-                )
-                st.markdown("## ❓Question:")
-                st.markdown(f"### {query}")
-                st.markdown("## 🤖 Generated Answer:")
-                st.markdown(response)
-                dump_logs(query, response, success=True)
+            # with st.spinner("GPT-4 is generating your answer ..."):
+            res_box = st.empty()
+
+            report = []
+            # Looping over the response
+            for resp in openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a helpful assistant to a researcher. You are helping them write a paper. You are given a prompt and a list of references. You are asked to write a summary of the references if they are related to the question. You should not include any personal opinions or interpretations in your answer, but rather focus on objectively presenting the information from the search results.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                api_key=constants.OPENAI_API_KEY,
+                stream=True,
+            ):
+
+                token = ""
+                response_obj = dict(resp.choices[0].delta)
+                if "content" in response_obj:
+                    token = response_obj["content"]
+                    report.append(token)
+                    result = "".join(report).strip()
+                    result = result.replace("\n", "")
+                    res_box.markdown(f"{result}")
+
+            dump_logs(query, report, success=True)
         except:
             st.write(
                 "Error generating answer using ChatGPT. Please reload below and try again"
