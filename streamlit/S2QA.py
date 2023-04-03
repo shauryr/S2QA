@@ -170,10 +170,6 @@ def app():
 
     # Add the button to the empty container
     button = st.button("Generate Answer", type='primary')
-    st.markdown(
-        "<h7 style='text-align: left;'>🚨 Generating an answer may take approximately 60 seconds as GPT-4 is slow</h7>",
-        unsafe_allow_html=True,
-    )
 
     if query and button:
         try:
@@ -262,7 +258,7 @@ def app():
         )
 
     display_known_issues()
-    display_warning()
+    # display_warning()
 
     st.write(
         "Made with ❤️ by [Shaurya Rohatgi](https://linktr.ee/shauryr) 📜 [Privacy Policy](https://www.termsfeed.com/live/5864cf7e-39e9-4e48-a014-c16ba54e08ea)"
