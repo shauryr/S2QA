@@ -152,6 +152,22 @@ def display_known_issues():
             """
         )
 
+def get_research_questions(answer):
+    """Generates an answer using ChatGPT."""
+    response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are helpful research visionary, consider the future possibilities and trends in a specific research area. Analyze the current state of the field, advancements in technology, and the potential for growth and development. Offer insights into how the researcher can contribute to this evolving landscape and provide innovative ideas that address challenges or gaps in the field. Inspire the researcher to think outside the box and explore new avenues of research, while also considering ethical, social, and environmental implications. Encourage collaboration and interdisciplinary approaches to maximize the impact of their work and drive the research area towards a promising and sustainable future.",
+                },
+                # {"role": "user", "content": answer },
+                {"role": "user", "content": answer + "\n Instructions: Based on the literature review provided, please generate five detailed research questions for future researchers to explore. Your research questions should build upon the existing knowledge and address gaps or areas that require further investigation. Please provide sufficient context and details for each question."},
+            ],
+            api_key=constants.OPENAI_API_KEY
+            )
+    return response.choices[0].message.content
+
 
 def app():
     """Main function that runs the Streamlit app."""
@@ -189,7 +205,6 @@ def app():
                 st.experimental_rerun()
             st.stop()
 
-        start_time = time.time()
         # st.success(f"Removing papers with no abstracts 🗑️")
         with st.spinner("⏳ Re-ranking search results ..."):
             df, query = rerank(df, query)
@@ -233,12 +248,22 @@ def app():
                     result = "".join(report).strip()
                     result = result.replace("\n", "")
                     res_box.markdown(f"{result}")
+            
+            answer = "".join(report)
+            dump_logs(query, answer, success=True)
 
-            dump_logs(query, report, success=True)
-        except:
+            st.markdown("### 🤖 Potential Research Questions:")
+            # questions_box = st.empty()
+            report = []
+            with st.spinner(f"⏳ Generating research questions ..."):
+                research_questions = get_research_questions(answer)
+                st.markdown(f"{research_questions}")
+                
+        except Exception as e:
             st.write(
                 "Error generating answer using ChatGPT. Please reload below and try again"
             )
+            print(e)
             dump_logs(query, "", success=False)
             if st.button("Reload"):
                 st.experimental_rerun()
