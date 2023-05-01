@@ -1,3 +1,7 @@
+"""
+streamlit run ThinkSpark.py --server.fileWatcherType none
+"""
+
 import streamlit as st
 import requests
 from tqdm import tqdm
@@ -43,21 +47,31 @@ def display_description():
     """Displays the description of the app."""
     # st.markdown("<h4 style='text-align: left;'>Get answers to your questions from 200M+ research papers from Semantic Scholar, summarized by ChatGPT</h4>", unsafe_allow_html=True)
     st.write(
-        "<h5 style='text-align: left;'>🏖️ Relax while a robot writes your lit review</h5>",
+        "<h5 style='text-align: left;'>🏖️ Generate insightful research questions tailored to your research interests</h5>",
         unsafe_allow_html=True,
     )
 
     st.write(
-        "<h5 style='text-align: left; '>✨The citations here are not hallucinated.</h5>",
+        "<h5 style='text-align: left; '>✨The citations here are not hallucinated</h5>",
         unsafe_allow_html=True,
     )
     st.write(
         """
-        Why use this tool?
-        - 👉 Get research overview of a topic
-        - 👉 Find papers relevant to your research
+        🤔 Here are some examples of research areas which you can explore:
+
+        - future of common sense reasoning and robotic arms
+        - wearable devices leverage recent findings in microbiome research
+        - future of gps tracking in marine biology
         """
     )
+    with st.expander("❓Why use this tool?", expanded=False):
+        st.markdown(
+            """
+            - Find new perspectives and ideas for your research
+            - Get inspired by relevant research topics and trends
+            - Literature reviews to save you time and effort
+            """
+        )
 
 
 def display_warning():
@@ -92,7 +106,7 @@ def generate_answer(prompt):
         messages=[
             {
                 "role": "system",
-                "content": "You are a helpful assistant to a researcher. You are helping them write a paper. You are given a prompt and a list of references. You are asked to write a summary of the references if they are related to the question. You should not include any personal opinions or interpretations in your answer, but rather focus on objectively presenting the information from the search results.",
+                "content": "As a helpful assistant to a researcher, your task is to write a summary of given references related to a specific prompt. Your summary should only include information from the provided sources, excluding any personal opinions or interpretations. Focus on presenting the information objectively based on the search results.",
             },
             {"role": "user", "content": prompt},
         ],
@@ -140,6 +154,18 @@ def dump_logs(query, response, success=True):
             json.dump(query_details, f)
             f.write("\n")
 
+# show powered by icons
+def display_powered_by():
+    """Displays the powered by Streamlit and Hugging Face badges."""
+    st.markdown(
+        "<h5 style='text-align: left;'>Powered by: </h5>", unsafe_allow_html=True
+    )
+    st.markdown(
+        """
+        <a href='https://semanticscholar.org' target='https://semanticscholar.org'><img src='https://pbs.twimg.com/profile_images/1304515818219216897/ns73Z_GS_400x400.png' alt='Powered by semanticscholar' width='45' style='margin-right: 20px;' /></a>
+        """,
+        unsafe_allow_html=True,
+    )
 
 def display_known_issues():
     """Displays the known issues"""
@@ -172,25 +198,25 @@ def get_research_questions(answer):
 def app():
     """Main function that runs the Streamlit app."""
     st.markdown(
-        "<h2 style='text-align: left;'>🚀 S2QA (beta): ChatGPT for Research 📚🤖</h2>",
+        "<h3 style='text-align: left;'>🚀 ThinkSpark (beta): AI-Powered Research Accelerator 📚</h3>",
         unsafe_allow_html=True,
     )
-
     display_badges()
+    display_powered_by()
     display_description()
 
     # Get the query from the user and sumit button
     query = st.text_input(
-        "Enter your research question here and press Generate Answer:"
+        "Enter your research interest here and press Think:", placeholder="future of agriculture and artificial intelligence"
     )
 
     # Add the button to the empty container
-    button = st.button("Generate Answer", type='primary')
+    button = st.button("Think", type='primary')
 
     if query and button:
         try:
             # Get the results from Semantic Scholar
-            with st.spinner("⏳ Getting papers from Semantic Scholar ..."):
+            with st.spinner("⏳ Getting latest papers from Semantic Scholar ..."):
                 df = get_results(query, limit=20)
             st.success(f"Got {df.shape[0]} related papers from Semantic Scholar 🎉")
             # st.dataframe(df[["title", "abstract", "venue"]].head())
@@ -220,7 +246,7 @@ def app():
         prompt = generate_prompt(df, query)
         st.markdown("### ❓Question:")
         st.markdown(f"#### {query}")
-        st.markdown("### 🤖 Generated Answer:")
+        st.markdown("### 🤖 Literature Review:")
         try:
             # with st.spinner("GPT-4 is generating your answer ..."):
             res_box = st.empty()
@@ -252,7 +278,7 @@ def app():
             answer = "".join(report)
             dump_logs(query, answer, success=True)
 
-            st.markdown("### 🤖 Potential Research Questions:")
+            st.markdown("### 🧐 Potential Research Questions:")
             # questions_box = st.empty()
             report = []
             with st.spinner(f"⏳ Generating research questions ..."):
@@ -271,22 +297,13 @@ def app():
 
         display_references(df)
 
-    # Display sample questions
-    with st.expander("❓❓ Here are some questions which you can ask:", expanded=False):
-        st.markdown(
-            """
-            - How can we improve the interpretability and transparency of complex machine learning models, and what are the implications for ensuring ethical and responsible AI development?
-            - Do Language Models Plagiarize?
-            - How does iron supplementation affect anemia?
-            - Do mitochondria play a role in remodelling lace plant leaves during programmed cell death?
-            """
-        )
+
 
     display_known_issues()
     # display_warning()
 
     st.write(
-        "Made with ❤️ by [Shaurya Rohatgi](https://linktr.ee/shauryr) 📜 [Privacy Policy](https://www.termsfeed.com/live/5864cf7e-39e9-4e48-a014-c16ba54e08ea)"
+        "Made with ❤️ by [Shaurya Rohatgi](https://linktr.ee/shauryr) and the Semantic Scholar team 📜 [Privacy Policy](https://www.termsfeed.com/live/5864cf7e-39e9-4e48-a014-c16ba54e08ea)"
     )
 
 
