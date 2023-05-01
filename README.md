@@ -1,10 +1,21 @@
 # 📚🤖 S2QA: Question Answering on research papers from Semantic Scholar
 
-Have you ever wondered what research papers have to say about your burning questions? Look no further than Semantic Scholar Q&A with GPT-3! 🙌
+## Updates
+- We have included demo for using serp api instead of s2 search api. This is much faster and more reliable for natural language queries but sometimes fails for exact matches.
+- Code for full text search is also available now. The demo will download the pdfs of the papers if they are open access and get answers from the extracted full text. 
+ - S2QA now uses GPT-4 for answering questions. This is a huge improvement over GPT-3.5
 
-This Python script lets you enter a question, and it uses the power of Semantic Scholar and GPT-3 to generate an answer based on the content of the top research papers. 🤖🔍
+Have you ever wondered what research papers have to say about your burning questions? Look no further than Semantic Scholar Q&A with GPT-4! 🙌
+
+This Python script lets you enter a question, and it uses the power of Semantic Scholar and GPT-4 to generate an answer based on the content of the top research papers. 🤖🔍
+
+### Demo is live here - [https://9a54-130-203-139-14.ngrok.io/](https://9a54-130-203-139-14.ngrok.io/)
 
 ![Demo](assets/Demo-for-S2QA-Imgur.gif)
+
+# Acknowledgements 
+This project is in collaboration with the Semantic Scholar Team. I am thankful for their support and feedback.
+
 
 - [chat_qa.ipynb](notebooks/chat_qa.ipynb) ⭐ sends the context to ChatGPT(using revChatGPT) for generating answers. This gives the best answers and is free. Seems less prone to hallucinations than other pipelines in this repo. 
 - [utils.py](notebooks/utils.py) - has all the necessary functions for search and GPT-3  prompting
