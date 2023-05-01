@@ -3,3 +3,5 @@ constants.py
 __pycache__/*.pyc
 .gitignore
 notebooks/pdfs/*.pdf
+notebooks/constants.py
+notebooks/__pycache__/constants.cpython-39.pyc
