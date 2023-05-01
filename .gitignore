@@ -2,3 +2,4 @@ s2api.py
 constants.py
 __pycache__/*.pyc
 .gitignore
+notebooks/pdfs/*.pdf
