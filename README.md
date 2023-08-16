@@ -12,7 +12,7 @@ This Python script lets you enter a question, and it uses the power of Semantic 
 ### UPDATE: 
 I am moving organisations;
 
-### Demo is live here - [https://shauryaruc-user-guide-chat.hf.space/](https://shauryaruc-user-guide-chat.hf.space/)
+### Demo is live here - [https://shaurya0512-s2qa.hf.space/](https://shaurya0512-s2qa.hf.space/)
 
 ![Demo](assets/Demo-for-S2QA-Imgur.gif)
 
