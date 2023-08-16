@@ -9,7 +9,10 @@ Have you ever wondered what research papers have to say about your burning quest
 
 This Python script lets you enter a question, and it uses the power of Semantic Scholar and GPT-4 to generate an answer based on the content of the top research papers. 🤖🔍
 
-### Demo is live here - [https://shauryr.github.io/s2qa-demo/](https://shauryr.github.io/s2qa-demo/)
+### UPDATE: 
+I am moving organisations;
+
+### Demo is live here - [https://shauryaruc-user-guide-chat.hf.space/](https://shauryaruc-user-guide-chat.hf.space/)
 
 ![Demo](assets/Demo-for-S2QA-Imgur.gif)
 
