@@ -1,6 +1,5 @@
 # 📚🤖 S2QA: Question Answering on research papers from Semantic Scholar
 
-## Updates
 - We have included demo for using serp api instead of s2 search api. This is much faster and more reliable for natural language queries but sometimes fails for exact matches.
 - Code for full text search is also available now. The demo will download the pdfs of the papers if they are open access and get answers from the extracted full text. 
  - S2QA now uses GPT-4 for answering questions. This is a huge improvement over GPT-3.5
@@ -9,7 +8,7 @@ Have you ever wondered what research papers have to say about your burning quest
 
 This Python script lets you enter a question, and it uses the power of Semantic Scholar and GPT-4 to generate an answer based on the content of the top research papers. 🤖🔍
 
-### UPDATE: 
+## UPDATE: 
 I am moving organisations; so the demo will be down while I find a new home for S2QA
 
 ### Demo will be down for a while; sorry about that
