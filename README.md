@@ -13,7 +13,7 @@ This Python script lets you enter a question, and it uses the power of Semantic 
 [https://shauryr.github.io/s2qa-demo/](https://shauryr.github.io/s2qa-demo/)
 
 
-![Demo](assets/Demo-for-S2QA-Imgur.gif)
+![Demo](assets/s2qa.gif)
 
 # Acknowledgements 
 This project is in collaboration with the Semantic Scholar Team. I am thankful for their support and feedback.
