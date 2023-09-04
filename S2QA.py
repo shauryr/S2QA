@@ -6,19 +6,17 @@ import streamlit as st
 import requests
 from tqdm import tqdm
 from IPython.display import Markdown, display
-from transformers import PegasusForConditionalGeneration, PegasusTokenizer
 import openai
 from utils import answer_question_chatgpt, print_papers_streamlit, get_results, rerank
-import constants
 import time
 import json
 import streamlit as st
 import requests
+import os
 
 tqdm.pandas()
 
 # Constants
-URL = "http://localhost:5001/predict"
 GITHUB_URL = "https://api.github.com/repos/shauryr/S2QA"
 K = 8
 TWITTER_USERNAME = "shauryr"
@@ -47,7 +45,7 @@ def display_description():
     """Displays the description of the app."""
     # st.markdown("<h4 style='text-align: left;'>Get answers to your questions from 200M+ research papers from Semantic Scholar, summarized by ChatGPT</h4>", unsafe_allow_html=True)
     st.write(
-        "<h5 style='text-align: left;'>🏖️ Generate insightful research questions tailored to your research interests</h5>",
+        "<h5 style='text-align: left;'>🏖️ Relax while a robot writes your lit review</h5>",
         unsafe_allow_html=True,
     )
 
@@ -55,23 +53,22 @@ def display_description():
         "<h5 style='text-align: left; '>✨The citations here are not hallucinated</h5>",
         unsafe_allow_html=True,
     )
+    # st.write(
+    #     """
+    #     🤔 Here are some examples of research areas which you can explore:
+
+    #     - future of common sense reasoning and robotic arms
+    #     - wearable devices leverage recent findings in microbiome research
+    #     - future of gps tracking in marine biology
+    #     """
+    # )
     st.write(
         """
-        🤔 Here are some examples of research areas which you can explore:
-
-        - future of common sense reasoning and robotic arms
-        - wearable devices leverage recent findings in microbiome research
-        - future of gps tracking in marine biology
+        Why use this tool?
+        - 👉 Get research overview of a topic
+        - 👉 Find papers relevant to your research
         """
     )
-    with st.expander("❓Why use this tool?", expanded=False):
-        st.markdown(
-            """
-            - Find new perspectives and ideas for your research
-            - Get inspired by relevant research topics and trends
-            - Literature reviews to save you time and effort
-            """
-        )
 
 
 def display_warning():
@@ -82,11 +79,20 @@ def display_warning():
     )
 
 
-def get_response(text):
-    """Sends a request to the server to get the summary of the given text."""
-    data = {"text": text}
-    response = requests.post(URL, json=data)
-    return response.json()["tldr"]
+def get_response(input_text):
+    # batch = tokenizer_summarizer(
+    #     [input_text],
+    #     truncation=True,
+    #     padding="longest",
+    #     max_length=1024,
+    #     return_tensors="pt",
+    # ).to(torch_device)
+    # gen_out = model_summarizer.generate(
+    #     **batch, max_length=256, num_beams=5, num_return_sequences=1, temperature=1.5
+    # )
+    # output_text = tokenizer_summarizer.batch_decode(gen_out, skip_special_tokens=True)
+    # return output_text[0]
+    return input_text
 
 
 def generate_prompt(df, query):
@@ -110,7 +116,8 @@ def generate_answer(prompt):
             },
             {"role": "user", "content": prompt},
         ],
-        api_key=constants.OPENAI_API_KEY,
+        # use secrets environment variable to get OPENAI_API_KEY
+        api_key=os.environ["OPENAI_API_KEY"],
     )
     return response.choices[0].message.content
 
@@ -133,7 +140,6 @@ def get_session_info():
 
 # Call the function to get the session info
 def dump_logs(query, response, success=True):
-
     # session = get_session_info()
     # Create a dictionary of query details
     query_details = {
@@ -154,6 +160,7 @@ def dump_logs(query, response, success=True):
             json.dump(query_details, f)
             f.write("\n")
 
+
 # show powered by icons
 def display_powered_by():
     """Displays the powered by Streamlit and Hugging Face badges."""
@@ -167,6 +174,7 @@ def display_powered_by():
         unsafe_allow_html=True,
     )
 
+
 def display_known_issues():
     """Displays the known issues"""
     with st.expander("⚠️ Known Issues:", expanded=False):
@@ -178,27 +186,32 @@ def display_known_issues():
             """
         )
 
+
 def get_research_questions(answer):
     """Generates an answer using ChatGPT."""
     response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are helpful research visionary, consider the future possibilities and trends in a specific research area. Analyze the current state of the field, advancements in technology, and the potential for growth and development. Offer insights into how the researcher can contribute to this evolving landscape and provide innovative ideas that address challenges or gaps in the field. Inspire the researcher to think outside the box and explore new avenues of research, while also considering ethical, social, and environmental implications. Encourage collaboration and interdisciplinary approaches to maximize the impact of their work and drive the research area towards a promising and sustainable future.",
-                },
-                # {"role": "user", "content": answer },
-                {"role": "user", "content": answer + "\n Instructions: Based on the literature review provided, please generate five detailed research questions for future researchers to explore. Your research questions should build upon the existing knowledge and address gaps or areas that require further investigation. Please provide sufficient context and details for each question."},
-            ],
-            api_key=constants.OPENAI_API_KEY
-            )
+        model="gpt-3.5-turbo",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are helpful research visionary, consider the future possibilities and trends in a specific research area. Analyze the current state of the field, advancements in technology, and the potential for growth and development. Offer insights into how the researcher can contribute to this evolving landscape and provide innovative ideas that address challenges or gaps in the field. Inspire the researcher to think outside the box and explore new avenues of research, while also considering ethical, social, and environmental implications. Encourage collaboration and interdisciplinary approaches to maximize the impact of their work and drive the research area towards a promising and sustainable future.",
+            },
+            # {"role": "user", "content": answer },
+            {
+                "role": "user",
+                "content": answer
+                + "\n Instructions: Based on the literature review provided, please generate five detailed research questions for future researchers to explore. Your research questions should build upon the existing knowledge and address gaps or areas that require further investigation. Please provide sufficient context and details for each question.",
+            },
+        ],
+        api_key=os.environ["OPENAI_API_KEY"],
+    )
     return response.choices[0].message.content
 
 
 def app():
     """Main function that runs the Streamlit app."""
     st.markdown(
-        "<h3 style='text-align: left;'>🚀 ThinkSpark (beta): AI-Powered Research Accelerator 📚</h3>",
+        "<h2 style='text-align: left;'>🚀 S2QA (beta): ChatGPT for Research 📚🤖</h2>",
         unsafe_allow_html=True,
     )
     display_badges()
@@ -207,20 +220,21 @@ def app():
 
     # Get the query from the user and sumit button
     query = st.text_input(
-        "Enter your research interest here and press Think:", placeholder="future of agriculture and artificial intelligence"
+        "Enter your research interest here and press Answer:",
+        placeholder="Do Language Models Plagiarize?",
     )
 
     # Add the button to the empty container
-    button = st.button("Think", type='primary')
-
-    if query and button:
+    button = st.button("Answer", type="primary")
+    if button:
         try:
             # Get the results from Semantic Scholar
-            with st.spinner("⏳ Getting latest papers from Semantic Scholar ..."):
-                df = get_results(query, limit=20)
+            print("Getting results from Semantic Scholar")
+            df = get_results(query, limit=20)
             st.success(f"Got {df.shape[0]} related papers from Semantic Scholar 🎉")
             # st.dataframe(df[["title", "abstract", "venue"]].head())
             df = df.dropna(subset=["abstract"])
+            print(df.shape)
             df = df.fillna("")
         except:
             st.write(
@@ -231,9 +245,13 @@ def app():
                 st.experimental_rerun()
             st.stop()
 
+        df["title_abs"] = [
+            d["title"] + " " + (d.get("abstract") or "")
+            for d in df.to_dict("records")
+        ]
         # st.success(f"Removing papers with no abstracts 🗑️")
-        with st.spinner("⏳ Re-ranking search results ..."):
-            df, query = rerank(df, query)
+        # with st.spinner("⏳ Re-ranking search results ..."):
+        #     df, query = rerank(df, query)
 
         # elapsed_time = time.time() - start_time
         # st.success(f"🙌 Re-ranking finished! 🕰️ Time taken {elapsed_time:.2f} seconds.")
@@ -246,7 +264,7 @@ def app():
         prompt = generate_prompt(df, query)
         st.markdown("### ❓Question:")
         st.markdown(f"#### {query}")
-        st.markdown("### 🤖 Literature Review:")
+        st.markdown("### 🤖 Generated Answer:")
         try:
             # with st.spinner("GPT-4 is generating your answer ..."):
             res_box = st.empty()
@@ -262,10 +280,9 @@ def app():
                     },
                     {"role": "user", "content": prompt},
                 ],
-                api_key=constants.OPENAI_API_KEY,
+                api_key=os.environ["OPENAI_API_KEY"],
                 stream=True,
             ):
-
                 token = ""
                 response_obj = dict(resp.choices[0].delta)
                 if "content" in response_obj:
@@ -274,7 +291,7 @@ def app():
                     result = "".join(report).strip()
                     result = result.replace("\n", "")
                     res_box.markdown(f"{result}")
-            
+
             answer = "".join(report)
             dump_logs(query, answer, success=True)
 
@@ -284,7 +301,7 @@ def app():
             with st.spinner(f"⏳ Generating research questions ..."):
                 research_questions = get_research_questions(answer)
                 st.markdown(f"{research_questions}")
-                
+
         except Exception as e:
             st.write(
                 "Error generating answer using ChatGPT. Please reload below and try again"
@@ -297,13 +314,11 @@ def app():
 
         display_references(df)
 
-
-
     display_known_issues()
     # display_warning()
 
     st.write(
-        "Made with ❤️ by [Shaurya Rohatgi](https://linktr.ee/shauryr) and the Semantic Scholar team 📜 [Privacy Policy](https://www.termsfeed.com/live/5864cf7e-39e9-4e48-a014-c16ba54e08ea)"
+        "Made with ❤️ by [Shaurya Rohatgi](https://linktr.ee/shauryr) 📜 [Privacy Policy](https://www.termsfeed.com/live/5864cf7e-39e9-4e48-a014-c16ba54e08ea)"
     )
 
 

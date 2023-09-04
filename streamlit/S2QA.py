@@ -188,22 +188,23 @@ def app():
     button = st.button("Generate Answer", type='primary')
 
     if query and button:
-        try:
+        # try:
             # Get the results from Semantic Scholar
-            with st.spinner("⏳ Getting papers from Semantic Scholar ..."):
-                df = get_results(query, limit=20)
-            st.success(f"Got {df.shape[0]} related papers from Semantic Scholar 🎉")
-            # st.dataframe(df[["title", "abstract", "venue"]].head())
-            df = df.dropna(subset=["abstract"])
-            df = df.fillna("")
-        except:
-            st.write(
-                "No results found for the query. Please try again with a different query 🏖️ OR the search API is down. Please try again later."
-            )
-            dump_logs(query, "", success=False)
-            if st.button("Reload"):
-                st.experimental_rerun()
-            st.stop()
+        print("Getting results from Semantic Scholar ...")
+        with st.spinner("⏳ Getting papers from Semantic Scholar ..."):
+            df = get_results(query, limit=20)
+        st.success(f"Got {df.shape[0]} related papers from Semantic Scholar 🎉")
+        # st.dataframe(df[["title", "abstract", "venue"]].head())
+        df = df.dropna(subset=["abstract"])
+        df = df.fillna("")
+        # except:
+        #     st.write(
+        #         "No results found for the query. Please try again with a different query 🏖️ OR the search API is down. Please try again later."
+        #     )
+        #     dump_logs(query, "", success=False)
+        #     if st.button("Reload"):
+        #         st.experimental_rerun()
+        #     st.stop()
 
         # st.success(f"Removing papers with no abstracts 🗑️")
         with st.spinner("⏳ Re-ranking search results ..."):
