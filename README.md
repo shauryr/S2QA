@@ -8,10 +8,10 @@ Have you ever wondered what research papers have to say about your burning quest
 
 This Python script lets you enter a question, and it uses the power of Semantic Scholar and GPT-4 to generate an answer based on the content of the top research papers. 🤖🔍
 
-### UPDATE: 
-I am moving organisations; so the demo will be down while I find a new home for S2QA
+## UPDATE Demo Link : 
 
-### Demo will be down for a while; sorry about that
+[https://shauryr.github.io/s2qa-demo/](https://shauryr.github.io/s2qa-demo/)
+
 
 ![Demo](assets/Demo-for-S2QA-Imgur.gif)
 
@@ -104,7 +104,7 @@ Overall, transformers have had a significant impact on language, particularly in
 
 These can be added in the [constants.py](notebooks/constants.py)
 
-The main third-party package requirements are `revChatGPT`, `tiktoken`, `openai`, `transformers` and `langchain`.
+The main third-party package requirements are `tiktoken`, `openai`, `transformers` and `langchain`.
 
 To install all the required packages
 ```
