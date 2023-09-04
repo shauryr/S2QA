@@ -44,10 +44,10 @@ def display_badges():
 def display_description():
     """Displays the description of the app."""
     # st.markdown("<h4 style='text-align: left;'>Get answers to your questions from 200M+ research papers from Semantic Scholar, summarized by ChatGPT</h4>", unsafe_allow_html=True)
-    st.write(
-        "<h5 style='text-align: left;'>🏖️ Relax while a robot writes your lit review</h5>",
-        unsafe_allow_html=True,
-    )
+    # st.write(
+    #     "<h5 style='text-align: left;'>🏖️ Relax while a robot writes your lit review</h5>",
+    #     unsafe_allow_html=True,
+    # )
 
     st.write(
         "<h5 style='text-align: left; '>✨The citations here are not hallucinated</h5>",
@@ -62,13 +62,13 @@ def display_description():
     #     - future of gps tracking in marine biology
     #     """
     # )
-    st.write(
-        """
-        Why use this tool?
-        - 👉 Get research overview of a topic
-        - 👉 Find papers relevant to your research
-        """
-    )
+    # st.write(
+    #     """
+    #     Why use this tool?
+    #     - 👉 Get research overview of a topic
+    #     - 👉 Find papers relevant to your research
+    #     """
+    # )
 
 
 def display_warning():
