@@ -1,307 +1,344 @@
+import logging
+from llama_index.readers.base import BaseReader
+from llama_index.readers.schema.base import Document
 import requests
-import nltk
-from transformers import AutoTokenizer, AutoModel
-import openai
-from sklearn.metrics.pairwise import cosine_similarity
-import pandas as pd
-from IPython.display import display, Markdown
-import streamlit as st
+from typing import List
+import re
 import os
-from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification
-from transformers import PegasusForConditionalGeneration, PegasusTokenizer
-import torch
+import logging
+from llama_index.readers.base import BaseReader
+from llama_index.readers.schema.base import Document
+import requests
+from typing import List
+import os
+import pandas as pd
+
+TWITTER_USERNAME = "shauryr"
 
 
-# model_name = "tuner007/pegasus_summarizer"
-# torch_device = "cuda" if torch.cuda.is_available() else "cpu"
-# tokenizer_summarizer = PegasusTokenizer.from_pretrained(model_name)
-# model_summarizer = PegasusForConditionalGeneration.from_pretrained(model_name).to(torch_device)
-
-# tokenizer = AutoTokenizer.from_pretrained("allenai/specter2")
-# model = AutoModel.from_pretrained("allenai/specter2")
-nltk.download("stopwords")
-
-
-def search(query, limit=20, fields=["title", "abstract", "venue", "year"]):
-    # space between the  query to be removed and replaced with +
-    query = query.replace(" ", "+")
-    url = f'https://api.semanticscholar.org/graph/v1/paper/search?query={query}&limit={limit}&fields={",".join(fields)}'
-    
-    headers = {"Accept": "*/*"}
-
-    response = requests.get(url, headers=headers, timeout=30)
-    
-    return response.json()
-
-
-def get_results(query, limit=20):
-    """ """
-    print("Searching for papers...", query)
-    search_results = search(preprocess_query(query), limit)
-    if search_results["total"] == 0:
-        print("No results found - Try another query")
-    else:
-        # drop rows with missing abstracts and titles
-        df = pd.DataFrame(search_results["data"])
-        df = df.dropna(subset=["title"])
-        # replace NA with empty string
-
-    return df
-
-
-def get_doc_objects_from_df(df):
+class SemanticScholarReader(BaseReader):
     """
-    Get a list of Document objects from a dataframe
-    """
-    doc_objects = []
-    for i, row in df.iterrows():
-        doc_object = langchain.docstore.document.Document(
-            page_content=row["abstract"],
-            metadata={"source": row["paperId"]},
-            lookup_index=i,
-        )
-        doc_objects.append(doc_object)
-    return doc_objects
+    A class to read and process data from Semantic Scholar API
+    ...
 
+    Methods
+    -------
+    __init__():
+       Instantiate the SemanticScholar object
 
-def rerank(df, query, column_name="title_abs"):
-    # merge columns title and abstract into a string separated by tokenizer.sep_token and store it in a list
-    df["title_abs"] = [
-        d["title"] + tokenizer.sep_token + (d.get("abstract") or "")
-        for d in df.to_dict("records")
-    ]
+    load_data(query: str, limit: int = 10, returned_fields: list = ["title", "abstract", "venue", "year", "paperId", "citationCount", "openAccessPdf", "authors"]) -> list:
+        Loads data from Semantic Scholar based on the query and returned_fields
 
-    df["n_tokens"] = df.title_abs.apply(lambda x: len(tokenizer.encode(x)))
-    doc_embeddings = get_specter_embeddings(list(df[column_name]))
-    query_embeddings = get_specter_embeddings(query)
-    df["specter_embeddings"] = list(doc_embeddings)
-    df["similarity"] = cosine_similarity(query_embeddings, doc_embeddings).flatten()
-
-    # sort the dataframe by similarity
-    df.sort_values(by="similarity", ascending=False, inplace=True)
-    return df, query
-
-
-# function to preprocess the query and remove the stopwords before passing it to the search function
-def preprocess_query(query):
-    query = query.lower()
-    # remove stopwords from the query
-    stopwords = set(nltk.corpus.stopwords.words("english"))
-    # add words to the stopwords list
-    stopwords.update(["please", "review"])
-    query = " ".join([word for word in query.split() if word not in stopwords])
-    return query
-
-
-def create_context(question, df, max_len=3800, size="davinci"):
-    """
-    Create a context for a question by finding the most similar context from the dataframe
     """
 
-    returns = []
-    cur_len = 0
+    def __init__(self, timeout=10, api_key=None, base_dir="pdfs"):
+        """
+        Instantiate the SemanticScholar object
+        """
+        from semanticscholar import SemanticScholar
+        import arxiv
 
-    # Sort by distance and add the text to the context until the context is too long
-    for i, row in df.iterrows():
-        # Add the length of the text to the current length
-        cur_len += row["n_tokens"] + 4
+        self.arxiv = arxiv
+        self.base_dir = base_dir
+        self.s2 = SemanticScholar(timeout, api_key)
+        # check for base dir
+        if not os.path.exists(self.base_dir):
+            os.makedirs(self.base_dir)
 
-        # If the context is too long, break
-        if cur_len > max_len:
-            break
+    def _clear_cache(self):
+        """
+        delete the .citation* folder
+        """
+        import shutil
 
-        # Else add it to the text that is being returned
-        returns.append(row["title_abs"])
+        shutil.rmtree("./.citation*")
 
-    # Return the context
-    return "\n\n###\n\n".join(returns)
+    def _download_pdf(self, paper_id, url: str, base_dir="pdfs"):
+        logger = logging.getLogger()
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+        }
+        # Making a GET request
+        response = requests.get(url, headers=headers, stream=True)
+        content_type = response.headers["Content-Type"]
 
+        # As long as the content-type is application/pdf, this will download the file
+        if "application/pdf" in content_type:
+            os.makedirs(base_dir, exist_ok=True)
+            file_path = os.path.join(base_dir, f"{paper_id}.pdf")
+            # check if the file already exists
+            if os.path.exists(file_path):
+                logger.info(f"{file_path} already exists")
+                return file_path
+            with open(file_path, "wb") as file:
+                for chunk in response.iter_content(chunk_size=1024):
+                    if chunk:
+                        file.write(chunk)
+            logger.info(f"Downloaded pdf from {url}")
+            return file_path
+        else:
+            logger.warning(f"{url} was not downloaded: protected")
+            return None
 
-def answer_question(
-    df,
-    model="text-davinci-003",
-    question="What is the impact of creatine on cognition?",
-    max_len=3800,
-    size="ada",
-    debug=False,
-    max_tokens=150,
-    stop_sequence=None,
-):
-    """
-    Answer a question based on the most similar context from the dataframe texts
-    """
-    context = create_context(
-        question,
-        df,
-        max_len=max_len,
-        size=size,
-    )
-    # If debug, print the raw model response
-    if debug:
-        print("Context:\n" + context)
-        print("\n\n")
+    def _get_full_text_docs(self, documents: List[Document]) -> List[Document]:
+        from PyPDF2 import PdfReader
 
-    try:
-        # Create a completions using the question and context
-        response = openai.Completion.create(
-            prompt=f'Answer the question based on the context below"\n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:',
-            temperature=0,
-            max_tokens=max_tokens,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0,
-            stop=stop_sequence,
-            model=model,
-        )
-        return response["choices"][0]["text"].strip()
-    except Exception as e:
-        print(e)
-        return ""
+        """
+        Gets the full text of the documents from Semantic Scholar
 
+        Parameters
+        ----------
+        documents: list
+            The list of Document object that contains the search results
 
-def get_langchain_response(docs, query, k=5):
-    """
-    Get the langchain response for a query. Here we are using the langchain mapreduce function to get the response.
-    Prompts here should be played around with. These are the prompts that worked best for us.
-    """
-    question_prompt_template = """Use the following portion of a long document to see if any of the text is relevant to answer the question. 
+        Returns
+        -------
+        list
+            The list of Document object that contains the search results with full text
 
-    {context}
-    Question: {question}
-    Relevant text, if any:"""
-    QUESTION_PROMPT = PromptTemplate(
-        template=question_prompt_template, input_variables=["context", "question"]
-    )
+        Raises
+        ------
+        Exception
+            If there is an error while getting the full text
 
-    combine_prompt_template = """Given the following extracted parts of a scientific paper and a question.  
-    If you don't know the answer, just say that you don't know. Don't try to make up an answer.
-    Create a final answer with references ("SOURCES")
-    ALWAYS return a "SOURCES" part at the end of your answer. Return sources as a list of strings, e.g. ["source1", "source2", ...]
+        """
+        full_text_docs = []
+        for paper in documents:
+            metadata = paper.extra_info
+            url = metadata["openAccessPdf"]
+            externalIds = metadata["externalIds"]
+            paper_id = metadata["paperId"]
+            file_path = None
+            persist_dir = os.path.join(self.base_dir, f"{paper_id}.pdf")
+            if url and not os.path.exists(persist_dir):
+                # Download the document first
+                file_path = self._download_pdf(metadata["paperId"], url, persist_dir)
 
-    QUESTION: {question}
-    =========
-    {summaries}
-    =========
-    FINAL ANSWER:"""
-    COMBINE_PROMPT = PromptTemplate(
-        template=combine_prompt_template, input_variables=["summaries", "question"]
-    )
+            if (
+                not url
+                and externalIds
+                and "ArXiv" in externalIds
+                and not os.path.exists(persist_dir)
+            ):
+                # download the pdf from arxiv
+                file_path = self._download_pdf_from_arxiv(
+                    paper_id, externalIds["ArXiv"]
+                )
 
-    chain = load_qa_with_sources_chain(
-        OpenAI(temperature=0, openai_api_key=constants.OPENAI_API_KEY),
-        chain_type="map_reduce",
-        return_intermediate_steps=True,
-        question_prompt=QUESTION_PROMPT,
-        combine_prompt=COMBINE_PROMPT,
-    )
-    chain_out = chain(
-        {"input_documents": docs[:k], "question": query}, return_only_outputs=True
-    )
-    return chain_out
+            # Then, check if it's a valid PDF. If it's not, skip to the next document.
+            if file_path:
+                try:
+                    pdf = PdfReader(open(file_path, "rb"))
+                except Exception as e:
+                    logging.error(
+                        f"Failed to read pdf with exception: {e}. Skipping document..."
+                    )
+                    continue
 
+                text = ""
+                for page in pdf.pages:
+                    text += page.extract_text()
+                full_text_docs.append(Document(text=text, extra_info=metadata))
 
-def return_answer_markdown(chain_out, df, query):
-    """
-    Parse the output_text and sources from the chain_out JSON and return a markdown string
-    """
-    output_text = chain_out["output_text"].split("\n\nSOURCES: ")[0].strip()
-    if chain_out["output_text"].endswith("]"):
-        sources = eval(chain_out["output_text"].split("SOURCES:")[1].strip())
-    else:
-        sources = eval(chain_out["output_text"].split("SOURCES:")[1].strip() + '"]')
+        return full_text_docs
 
-    # Creating a new JSON with the extracted output_text and sources
-    output_text = {"output_text": output_text, "sources": sources}
+    def _download_pdf_from_arxiv(self, paper_id, arxiv_id):
+        paper = next(self.arxiv.Search(id_list=[arxiv_id], max_results=1).results())
+        paper.download_pdf(dirpath=self.base_dir, filename=paper_id + ".pdf")
+        return os.path.join(self.base_dir, f"{paper_id}.pdf")
 
-    # Printing the new JSON
-    display(Markdown(f"## Question\n\n"))
+    def load_data(
+        self,
+        query,
+        limit,
+        full_text=False,
+        returned_fields=[
+            "title",
+            "abstract",
+            "venue",
+            "year",
+            "paperId",
+            "citationCount",
+            "openAccessPdf",
+            "authors",
+            "externalIds",
+        ],
+    ) -> List[Document]:
+        """
+        Loads data from Semantic Scholar based on the entered query and returned_fields
 
-    display(Markdown(f"### {query}\n\n"))
+        Parameters
+        ----------
+        query: str
+            The search query for the paper
+        limit: int, optional
+            The number of maximum results returned (default is 10)
+        returned_fields: list, optional
+            The list of fields to be returned from the search
 
-    display(Markdown(f"## Answer\n\n"))
+        Returns
+        -------
+        list
+            The list of Document object that contains the search results
 
-    display(Markdown(f"### {output_text['output_text']}\n\n"))
+        Raises
+        ------
+        Exception
+            If there is an error while performing the search
 
-    display(Markdown(f"## Sources: \n\n"))
-
-    # markdown headings for each source
-    for source in output_text["sources"]:
+        """
         try:
-            title = df[df["paperId"] == source]["title"].values[0]
-            link = f"https://www.semanticscholar.org/paper/{source}"
-            venue = df[df["paperId"] == source]["venue"].values[0]
-            year = df[df["paperId"] == source]["year"].values[0]
-            display(Markdown(f"* #### [{title}]({link}) - {venue}, {year}"))
-        except:
-            display(Markdown(f"Source not found: {source}"))
+            results = self.s2.search_paper(query, limit=limit, fields=returned_fields)
+        except (requests.HTTPError, requests.ConnectionError, requests.Timeout) as e:
+            logging.error(
+                "Failed to fetch data from Semantic Scholar with exception: %s", e
+            )
+            raise
+        except Exception as e:
+            logging.error("An unexpected error occurred: %s", e)
+            raise
+
+        documents = []
+        
+        for item in results[:limit]:
+            openAccessPdf = getattr(item, "openAccessPdf", None)
+            abstract = getattr(item, "abstract", None)
+            title = getattr(item, "title", None)
+            text = None
+            # concat title and abstract
+            if abstract and title:
+                text = title + " " + abstract
+            elif not abstract:
+                text = title
+
+            metadata = {
+                "title": title,
+                "venue": getattr(item, "venue", None),
+                "year": getattr(item, "year", None),
+                "paperId": getattr(item, "paperId", None),
+                "citationCount": getattr(item, "citationCount", None),
+                "openAccessPdf": openAccessPdf.get("url") if openAccessPdf else None,
+                "authors": [author["name"] for author in getattr(item, "authors", [])],
+                "externalIds": getattr(item, "externalIds", None),
+            }
+            documents.append(Document(text=text, extra_info=metadata))
+
+        if full_text:
+            logging.info("Getting full text documents...")
+            full_text_documents = self._get_full_text_docs(documents)
+            documents.extend(full_text_documents)
+        return documents
 
 
-def print_papers(df, k=8):
-    count = 1
-    for i in range(k):
-        # add index
-        title = df.iloc[i]["title"]
-        link = f"https://www.semanticscholar.org/paper/{df.iloc[i]['paperId']}"
-        venue = df.iloc[i]["venue"]
-        year = df.iloc[i]["year"]
-        display(Markdown(f"#### {[count]} [{title}]({link}) - {venue}, {year}"))
-        count += 1
+def get_twitter_badge():
+    """Constructs the Markdown code for the Twitter badge."""
+    return f'<a href="https://twitter.com/{TWITTER_USERNAME}" target="_blank"><img src="https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white" /></a>'
 
 
-def print_papers_streamlit(df, k=8):
-    count = 1
-    for i in range(k):
-        # add index
-        title = df.iloc[i]["title"]
-        link = f"https://www.semanticscholar.org/paper/{df.iloc[i]['paperId']}"
-        venue = df.iloc[i]["venue"]
-        year = df.iloc[i]["year"]
-        st.markdown(f"{[count]} [{title}]({link}) - {venue}, {year}")
-        count += 1
+def get_link_tree_badge():
+    return f'<a href="https://linktr.ee/shauryr" target="_blank"><img src="https://img.shields.io/badge/Linktree-39E09B?style=for-the-badge&logo=linktree&logoColor=white" /></a>'
 
 
-def answer_question_chatgpt(
-    df,
-    question="What is the impact of creatine on cognition?",
-    k=5,
-    instructions="Instructions: Using the provided web search results, write a comprehensive reply to the given query. If you find a result relevant definitely make sure to cite the result using [[number](URL)] notation after the reference. End your answer with a summary. A\nQuery:",
-    max_len=3000,
-    debug=False,
-):
-    """
-    Answer a question based on the most similar context from the dataframe texts
-    """
-    context = create_context_chatgpt(question, df, k=k)
+def display_questions(sample_questions):
+    s = "#### 🧐 More questions? \n"
+    for i in sample_questions:
+        s += "- " + i + "\n"
 
-    try:
-        # Create a completions using the question and context
-        # prompt = f'''{context} \n\n Instructions: Using the provided literature with sources, write a comprehensive reply to the given query. Make sure to cite results using [[number](URL)] notation after the reference. If the provided search results refer to multiple subjects with the same name, write separate answers for each subject. You can skip a citation which you dont find relevant to the query. \nQuery:{question}\nAnswer:'''
-        prompt = f"""{context} \n\n{instructions} {question}\nAnswer:"""
-        return prompt
-    except Exception as e:
-        print(e)
-        return ""
+    return s
 
 
-def create_context_chatgpt(question, df, k=5):
-    """
-    Create a context for a question by finding the most similar context from the dataframe
-    """
+def get_citation(metadata):
+    # Extract details from metadata
+    title = metadata.get("title", "No Title")
+    venue = metadata.get("venue", "No Venue")
+    year = metadata.get("year", "No Year")
+    authors = metadata.get("authors", [])
 
-    returns = []
-    count = 1
-    # Sort by distance and add the text to the context until the context is too long
-    for i, row in df[:k].iterrows():
-        # Else add it to the text that is being returned
-        returns.append(
-            "["
-            + str(count)
-            + "] "
-            + row["tldr"]
-            + "\nURL: "
+    # Generate author names in correct format
+    author_names = []
+    for author in authors[:5]:
+        last_name, *first_names = author.split(" ")
+        first_initials = " ".join(name[0] + "." for name in first_names)
+        author_names.append(f"{last_name}, {first_initials}")
+
+    authors_string = ", & ".join(author_names)
+
+    # APA citation format: Author1, Author2, & Author3. (Year). Title. Venue.
+    citation = f"{authors_string}. ({year}). **{title}**. {venue}."
+
+    return citation
+
+
+def extract_numbers_in_brackets(input_string):
+    # use regular expressions to find all occurrences of [number]
+    # numbers_in_brackets = re.findall(r"\[(\d+)\]", input_string)
+    numbers_in_brackets = re.findall(r"\[(.*?)\]", input_string)
+    # numbers_in_brackets = [int(i) for num in numbers_in_brackets for i in num.split(",")]
+    # convert all numbers to int and remove duplicates by converting list to set and then back to list
+    return sorted(list(set(map(int, numbers_in_brackets))))
+
+
+def generate_used_reference_display(source_nodes, used_nodes):
+    reference_display = "\n #### 📚 References: \n"
+    # for index in used_nodes get the source node and add it to the reference display
+    for index in used_nodes:
+        source_node = source_nodes[index - 1]
+        metadata = source_node.node.metadata
+        reference_display += (
+            "[["
+            + str(source_nodes.index(source_node) + 1)
+            + "]"
+            + "("
             + "https://www.semanticscholar.org/paper/"
-            + row["paperId"]
+            + metadata["paperId"]
+            + ")] "
+            + "\n `. . ."
+            + str(source_node.node.text)[100:290]
+            + ". . .`"
+            + get_citation(metadata)
+            + " \n\n"
         )
-        count += 1
-    # Return the context
-    return "\n\n".join(returns)
+
+    return reference_display
+
+def documents_to_df(documents):
+    # convert document objects to dataframe
+    list_data = []
+    for i, doc in enumerate(documents):
+        list_data.append(doc.extra_info.copy())
+    
+    df = pd.DataFrame(list_data)
+    return df
+        
+
+def generate_reference_display(source_nodes):
+    reference_display = "\n ### References: \n"
+    for source_node in source_nodes:
+        metadata = source_node.node.metadata
+        # add number infront of citation to make it easier to reference
+        # reference_display += (
+        #     "[["
+        #     + str(source_nodes.index(source_node) + 1)
+        #     + "]"
+        #     + "("
+        #     + "https://www.semanticscholar.org/paper/"
+        #     + metadata["paperId"]
+        #     + ")] "
+        #     + '\n "`. . .'
+        #     + str(source_node.node.text)[100:290]
+        #     + ". . .` - **"
+        #     + get_citation(metadata)
+        #     + "** \n\n"
+        # )
+        reference_display += (
+            "[["
+            + str(source_nodes.index(source_node) + 1)
+            + "]"
+            + "("
+            + "https://www.semanticscholar.org/paper/"
+            + metadata["paperId"]
+            + ")] "
+            + get_citation(metadata)
+            + " \n\n"
+        )
+    return reference_display
