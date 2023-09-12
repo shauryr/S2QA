@@ -275,7 +275,17 @@ def extract_numbers_in_brackets(input_string):
     numbers_in_brackets = re.findall(r"\[(.*?)\]", input_string)
     # numbers_in_brackets = [int(i) for num in numbers_in_brackets for i in num.split(",")]
     # convert all numbers to int and remove duplicates by converting list to set and then back to list
-    return sorted(list(set(map(int, numbers_in_brackets))))
+    cleaned_numbers = []
+    for n in numbers_in_brackets:
+    # Try to convert the value to an integer
+        try:
+            cleaned_numbers.append(int(n))
+        # If it fails (throws a ValueError), just ignore and continue with the next value
+        except ValueError:
+            continue
+
+    # Apply the rest of your code on the cleaned list
+    return sorted(list(set(cleaned_numbers)))
 
 
 def generate_used_reference_display(source_nodes, used_nodes):
