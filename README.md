@@ -1,5 +1,7 @@
 # 📚🤖 S2QA: Question Answering on research papers from Semantic Scholar
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://s2questionanswering.streamlit.app)
+
 - We have included demo for using serp api instead of s2 search api. This is much faster and more reliable for natural language queries but sometimes fails for exact matches.
 - Code for full text search is also available now. The demo will download the pdfs of the papers if they are open access and get answers from the extracted full text. 
  - S2QA now uses GPT-4 for answering questions. This is a huge improvement over GPT-3.5
