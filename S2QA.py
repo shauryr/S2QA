@@ -21,7 +21,6 @@ import pandas as pd
 # ?query=deep%20learning%20for%20nlp&num_papers=50&full_text=True
 # TODO update URL with query and num_papers after button press: add share button
 # TODO add github logo in same style as twitter and linktree
-# TODO show the papers ingested in the sidebar as dataframe with title, authors, year, abstract, link
 # TODO [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://<your-custom-subdomain>.streamlit.app)
 
 url_params = st.experimental_get_query_params()
@@ -90,13 +89,12 @@ if button and research_space_query:
             st.dataframe(documents_to_df(documents))
         
     st.success(
-        "###### Chat with Research Space *"
+        "###### 🤖 Summary of Research Space *"
         + research_space_query.lower()
         + "* with "
         + str(num_papers)
         + " papers is ready 🚀"
     )
-    st.title("🤖 Summary of Research Space")
         
     with st.chat_message("assistant"):
         response = chat_engine.query("elaborate on " + research_space_query)
