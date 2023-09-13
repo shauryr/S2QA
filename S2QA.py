@@ -26,10 +26,13 @@ import pandas as pd
 url_params = st.experimental_get_query_params()
 num_papers = 30
 query = "large language models"
+full_text = False
 if "query" in url_params:
     query = url_params["query"][0]
 if "num_papers" in url_params:
     num_papers = int(url_params["num_papers"][0])
+if "full_text" in url_params:
+    full_text = bool(url_params["full_text"][0])
 
 with st.sidebar:
     st.title("📚🤖 S2QA: Query your Research Space")
@@ -74,6 +77,11 @@ if button and research_space_query:
                 index, documents = create_index(
                     research_space_query.lower(), num_papers, full_text
                 )
+                st.experimental_set_query_params(
+                    query=[research_space_query],
+                    num_papers=[num_papers],
+                    full_text=[full_text],
+                )
             except:
                 st.error(
                     "Error creating index. Please check your API key or try reducing the number of papers."
@@ -97,6 +105,8 @@ if button and research_space_query:
     )
         
     with st.chat_message("assistant"):
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
         response = chat_engine.query("elaborate on " + research_space_query)
         full_response = ''
         placeholder = st.empty()
@@ -119,9 +129,9 @@ if button and research_space_query:
         st.session_state.messages.append(
             {"role": "assistant", "content": full_response}
         )
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
+        # st.session_state.messages = []
+    
+# TODO fix duplicate summary message bug
     
 if st.session_state.get("show_chat", False):
     if "messages" not in st.session_state:
