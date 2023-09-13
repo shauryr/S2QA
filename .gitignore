@@ -5,3 +5,7 @@ __pycache__/*.pyc
 notebooks/pdfs/*.pdf
 notebooks/constants.py
 notebooks/__pycache__/constants.cpython-39.pyc
+README.md
+citation_*
+pdfs/*.pdf
+query_details.json
