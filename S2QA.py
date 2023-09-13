@@ -71,9 +71,15 @@ if button and research_space_query:
             st.stop()
         with st.status("🦙🦙 LlaMa's are working together . . ."):
             st.write("Creating Index for research space: " + research_space_query)
-            index, documents = create_index(
-                research_space_query.lower(), num_papers, full_text
-            )
+            try:
+                index, documents = create_index(
+                    research_space_query.lower(), num_papers, full_text
+                )
+            except:
+                st.error(
+                    "Error creating index. Please check your API key or try reducing the number of papers."
+                )
+                st.stop()
             st.write("Getting Query Engine ready . . .")
             sample_questions = generate_sample_questions(documents)
             chat_engine = citation_query_engine(index, 10, True, 512)
@@ -90,6 +96,32 @@ if button and research_space_query:
         + str(num_papers)
         + " papers is ready 🚀"
     )
+    st.title("🤖 Summary of Research Space")
+        
+    with st.chat_message("assistant"):
+        response = chat_engine.query("elaborate on " + research_space_query)
+        full_response = ''
+        placeholder = st.empty()
+        for text in response.response_gen:
+            # Appending response content if available
+            full_response += text
+            # Displaying the response to the user
+            placeholder.markdown(full_response + "▌")
+        used_nodes = extract_numbers_in_brackets(full_response)
+        if used_nodes:
+            list_titles = generate_used_reference_display(
+                response.source_nodes, used_nodes
+            )
+            full_response = str(full_response) + list_titles
+            documents = st.session_state["documents"]
+            questions = display_questions(generate_sample_questions(documents))
+        else:
+            questions = ""
+        placeholder.markdown(full_response + "\n" + questions)
+        st.session_state.messages.append(
+            {"role": "assistant", "content": full_response}
+        )
+        st.session_state.messages = []
     
 if st.session_state.get("show_chat", False):
     if "messages" not in st.session_state:
