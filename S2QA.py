@@ -119,7 +119,9 @@ if button and research_space_query:
         st.session_state.messages.append(
             {"role": "assistant", "content": full_response}
         )
+    if "messages" not in st.session_state:
         st.session_state.messages = []
+
     
 if st.session_state.get("show_chat", False):
     if "messages" not in st.session_state:
