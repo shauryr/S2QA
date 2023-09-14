@@ -238,6 +238,8 @@ def get_twitter_badge():
 def get_link_tree_badge():
     return f'<a href="https://linktr.ee/shauryr" target="_blank"><img src="https://img.shields.io/badge/Linktree-39E09B?style=for-the-badge&logo=linktree&logoColor=white" /></a>'
 
+def get_github_badge():
+    return f'<a href="https://github.com/shauryr/s2qa" target="_blank"><img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" /></a>'
 
 def display_questions(sample_questions):
     s = "#### 🧐 More questions? \n"

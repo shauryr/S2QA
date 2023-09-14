@@ -8,6 +8,7 @@ from backend import (
 from utils import (
     get_twitter_badge,
     get_link_tree_badge,
+    get_github_badge,
     display_questions,
     extract_numbers_in_brackets,
     generate_used_reference_display,
@@ -33,11 +34,19 @@ if "num_papers" in url_params:
 if "full_text" in url_params:
     full_text = bool(url_params["full_text"][0])
 
+# Initialize a session state variable that tracks the sidebar state (either 'expanded' or 'collapsed').
+if 'sidebar_state' not in st.session_state:
+    st.session_state.sidebar_state = 'expanded'
+
+# Streamlit set_page_config method has a 'initial_sidebar_state' argument that controls sidebar state.
+st.set_page_config(initial_sidebar_state=st.session_state.sidebar_state)
+
+
 with st.sidebar:
     st.title("📚🤖 S2QA: Query your Research Space")
 
     st.markdown(
-        f"{get_twitter_badge()}  {get_link_tree_badge()}", unsafe_allow_html=True
+        f" {get_github_badge()} {get_twitter_badge()}  {get_link_tree_badge()}", unsafe_allow_html=True
     )
     st.markdown("Ask deeper questions about your research space")
     openai_api_key = st.text_input(
