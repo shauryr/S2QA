@@ -88,11 +88,11 @@ if button and research_space_query:
                 )
                 st.stop()
             st.write("Getting Query Engine ready . . .")
-            sample_questions = generate_sample_questions(documents)
+            # sample_questions = generate_sample_questions(documents)
             chat_engine = citation_query_engine(index, 10, True, 512)
             st.session_state["chat_engine"] = chat_engine
             st.session_state["documents"] = documents
-        st.markdown(display_questions(sample_questions))
+        # st.markdown(display_questions(sample_questions))
         with st.expander("📚 Papers in the index: ", expanded=False):
             st.dataframe(documents_to_df(documents))
         
@@ -131,13 +131,13 @@ if button and research_space_query:
         )
         # st.session_state.messages = []
     
-# TODO fix duplicate summary message bug
+
     
 if st.session_state.get("show_chat", False):
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    for message in st.session_state.messages:
+    for message in st.session_state.messages[1:]:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
