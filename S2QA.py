@@ -14,7 +14,6 @@ from utils import (
     documents_to_df
 )
 import openai
-import pandas as pd
 
 # ?show_map=True&selected=asia&selected=america
 # {"show_map": ["True"], "selected": ["asia", "america"]}
@@ -55,7 +54,7 @@ with st.sidebar:
         query,
     )
     num_papers = st.slider(
-        "Number of papers you want to chat with ", 20, 50, num_papers
+        "Number of papers you want to chat with ", 10, 50, num_papers
     )
     full_text = st.toggle(
         "Full Text (initial setup is slow as we first download the pdfs: default set to 10 papers)"
