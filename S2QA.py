@@ -41,12 +41,10 @@ with st.sidebar:
     )
     st.markdown("Ask deeper questions about your research space")
     openai_api_key = st.text_input(
-        "OpenAI API Key", key="OPENAI_API_KEY", type="password"
+        "OpenAI API Key", type="password"
     )
-    # openai.api_key = os.getenv("OPENAI_API_KEY")
     openai.api_key = openai_api_key
-
-    "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
+    "🔑 [Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
     research_space_box = st.empty()
     # hidden text input placeholder
     research_space_query = st.text_input(
