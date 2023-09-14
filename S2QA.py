@@ -50,7 +50,7 @@ with st.sidebar:
     )
     st.markdown("Ask deeper questions about your research space")
     openai_api_key = st.text_input(
-        "OpenAI API Key", type="password"
+        "OpenAI API Key", "OPENAI_API_KEY",type="password"
     )
     openai.api_key = openai_api_key
     "🔑 [Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
