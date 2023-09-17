@@ -2,25 +2,39 @@
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://s2questionanswering.streamlit.app)
 
-- We have included demo for using serp api instead of s2 search api. This is much faster and more reliable for natural language queries but sometimes fails for exact matches.
-- Code for full text search is also available now. The demo will download the pdfs of the papers if they are open access and get answers from the extracted full text. 
- - S2QA now uses GPT-4 for answering questions. This is a huge improvement over GPT-3.5
-
-Have you ever wondered what research papers have to say about your burning questions? Look no further than Semantic Scholar Q&A with GPT-4! 🙌
-
-This Python script lets you enter a question, and it uses the power of Semantic Scholar and GPT-4 to generate an answer based on the content of the top research papers. 🤖🔍
-
-## UPDATE Demo Link : 
-
-[https://shauryr.github.io/s2qa-demo/](https://shauryr.github.io/s2qa-demo/)
-
 
 ![Demo](assets/s2qa.gif)
 
-# Acknowledgements 
+Have you ever wondered what research papers have to say about your burning questions? Look no further than Semantic Scholar Q&A with GPT-4! 🙌
+
+This Python script lets you enter a question, and it uses the power of Semantic Scholar and OpenAI to generate an answer based on the content of the top research papers. 🤖🔍
+
+## 🚀 What's New!
+
+- [Ollama](https://github.com/jmorganca/ollama) support. See [notebook](notebooks/ollama.ipynb)
+- S2QA now supports llama-index! Check out the data loader here on [llama hub](https://llamahub.ai/l/semanticscholar)
+- Updated UI with chat interface:
+  - Keeps the context
+  - Shows only used references
+  - Index once for each reserach space; vectors and index are cached
+- Full-text support! 
+
+
+## 💻 Demo Link : 
+
+[https://shauryr.github.io/s2qa-demo/](https://shauryr.github.io/s2qa-demo/)
+
+----
+
+
+## 👏 Acknowledgements 
 This project is in collaboration with the Semantic Scholar Team. I am thankful for their support and feedback.
 
-# Notebooks 
+----
+
+
+## 📘 Notebooks 
+- [ollama.ipynb](notebooks/ollama.ipynb) ⭐ Ollama support demo
 - [chat_qa.ipynb](notebooks/chat_qa.ipynb) ⭐ sends the context to ChatGPT(using revChatGPT) for generating answers. This gives the best answers and is free. Seems less prone to hallucinations than other pipelines in this repo. 
 - [utils.py](notebooks/utils.py) - has all the necessary functions for search and GPT-3  prompting
 - [s2qa_sources_langchain.ipynb](notebooks/s2qa_sources_langchain.ipynb) - Get better answers with langchain mapreduce but this is very expensive. Prone to hallucinations.
@@ -31,20 +45,15 @@ Caution should be exercised when using generative AI for scientific text, as the
 
 [![Star History Chart](https://api.star-history.com/svg?repos=shauryr/s2qa&type=Date)](https://star-history.com/#shauryr/s2qa&Date)
 
-
-# Examples
-
-## 🤖 Getting answers from ChatGPT 
-
-##  Demo - 
-[chat_qa.ipynb](notebooks/chat_qa.ipynb)
-
 ----
-## Question
 
-### what is the impact of transformers on language
+## 🤖 Examples
 
-## ChatGPT Response:
+#### ❓ Question
+
+#### what is the impact of transformers on language
+
+#### 🤖 ChatGPT Response:
 
 Transformers have had a significant impact on language in a variety of ways. One of the most prominent areas of impact is in natural language processing (NLP), which has been revolutionized by the development of transformer-based language models. These models have been used for a variety of NLP tasks, including machine translation [[1](https://www.semanticscholar.org/paper/3d67a1fd78c7e74813e898b67fa5965a7d2ce25e)], code summarization [[2](https://www.semanticscholar.org/paper/761472e1c6012e001438d22ef771a0defbac3695)], detecting patronizing and condescending language [[3](https://www.semanticscholar.org/paper/36f7da6d848070f74b48bdf2accace00a66202a3)], and spoken language understanding tasks [[4](https://www.semanticscholar.org/paper/0de905634bd3d42a612ffab7ddd7a814e7e655bb)].
 
@@ -76,33 +85,10 @@ Overall, transformers have had a significant impact on language, particularly in
 
 ![Demo](assets/demo.jpg)
 
-## 🤖 Answers with regular "stuffing" context
-
-```python
->> query = "How does iron supplementation affect anemia?"
-
->> answer_question(df, question=query, debug=False)
-
-'Iron supplementation can reduce anemia in pregnant women with mild or no anemia, but it can also increase the risk of neonatal jaundice. Iron supplementation can also improve iron stores and decrease anemia in non-pregnant women, but it can also increase the risk of diarrhea. Good adherence and initiation of supplementation before conception are needed to reduce anemia during early pregnancy.'
-```
-
-```python
->> query = "What are the effects of sleep training on infants?"
-
->> answer_question(df, question=query, debug=False)
-
-'Sleep training can lead to improved sleeping patterns, decreased parental stress, and increased parental competence. It can also lead to improved sleep efficiency, sleep onset latency, and sleep duration.'
-```
-
-
-
----
-
-## Requirements 🧰
+## 🧰 Requirements 
 
 - `OpenAI API key` (if you are using langchain)
 - `Semantic Scholar Academic Graph API key` - https://www.semanticscholar.org/product/api
-- `OpenAI credentials` (if you are using revChatGPT) - email and password
 
 These can be added in the [constants.py](notebooks/constants.py)
 
@@ -113,7 +99,7 @@ To install all the required packages
 pip install -r requirements.txt
 ```
 
-## Pipeline 🚀
+## 📍 Pipeline 
 
 1️⃣ `Searching` : We begin by searching the vast and ever-growing database of Semantic Scholar to find the most up-to-date and relevant papers and articles related to your question.
 
@@ -121,13 +107,9 @@ pip install -r requirements.txt
 
 3️⃣ `Answering` : Finally, we use the powerful natural language processing capabilities of GPT-3 to generate informative and accurate answers to your question, using custom prompts to ensure the best results.
 
-## Customizable 🖊️
+## 🖊️ Customizable 
 
 - Try other open embedding methods on huggingface to see better re-ranking results. 
 
 - Try other prompts or refine the current prompt to get even better answers.
 
-## TODO 👈
-
-- ~~Add citations to the statements generated by GPT-3. As we have links to the actual paper this shouldn't be hard to do.~~ See [s2qa_sources_langchain.ipynb](notebooks/s2qa_sources_langchain.ipynb)
-- Evaluate for some questions from ChatGPT. Report results
