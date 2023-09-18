@@ -16,7 +16,7 @@ This Python script lets you enter a question, and it uses the power of Semantic 
 - Updated UI with chat interface:
   - Keeps the context
   - Shows only used references
-  - Index once for each reserach space; vectors and index are cached
+  - Index once for each research space; vectors and index are cached
 - Full-text support! 
 
 
