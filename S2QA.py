@@ -29,7 +29,7 @@ from firebase_admin import db
 
 
 if not firebase_admin._apps:
-    cred = st.secrets["firebase"]['my_project_settings']
+    cred = dict(st.secrets["firebase"]['my_project_settings'])
     # cred = credentials.Certificate("/Users/shaurya/Desktop/s2qa-0512-firebase-adminsdk-fc3mi-066e0bd473.json")
     default_app = firebase_admin.initialize_app(cred, {'databaseURL' : 'https://s2qa-0512-default-rtdb.firebaseio.com/'})
 else:
