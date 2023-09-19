@@ -19,3 +19,4 @@ PyPDF2==3.0.1
 firebase_admin
 pandas
 streamlit
+firebase_admin

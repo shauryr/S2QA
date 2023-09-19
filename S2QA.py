@@ -5,6 +5,8 @@ from backend import (
     citation_query_engine,
     generate_sample_questions,
 )
+import datetime
+import pytz
 from utils import (
     get_twitter_badge,
     get_link_tree_badge,
@@ -12,16 +14,29 @@ from utils import (
     display_questions,
     extract_numbers_in_brackets,
     generate_used_reference_display,
-    documents_to_df
+    documents_to_df,
 )
 import openai
 
-# ?show_map=True&selected=asia&selected=america
-# {"show_map": ["True"], "selected": ["asia", "america"]}
 # ?query=deep%20learning%20for%20nlp&num_papers=50&full_text=True
 # TODO update URL with query and num_papers after button press: add share button
 # TODO add github logo in same style as twitter and linktree
 # TODO [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://<your-custom-subdomain>.streamlit.app)
+
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import db
+
+
+if not firebase_admin._apps:
+    cred = st.secrets["firebase"]['my_project_settings']
+    # cred = credentials.Certificate("/Users/shaurya/Desktop/s2qa-0512-firebase-adminsdk-fc3mi-066e0bd473.json")
+    default_app = firebase_admin.initialize_app(cred, {'databaseURL' : 'https://s2qa-0512-default-rtdb.firebaseio.com/'})
+else:
+    default_app = firebase_admin.get_app()
+
+# Get a database reference
+ref = db.reference("logs", app=default_app)
 
 url_params = st.experimental_get_query_params()
 num_papers = 30
@@ -34,24 +49,16 @@ if "num_papers" in url_params:
 if "full_text" in url_params:
     full_text = bool(url_params["full_text"][0])
 
-# Initialize a session state variable that tracks the sidebar state (either 'expanded' or 'collapsed').
-if 'sidebar_state' not in st.session_state:
-    st.session_state.sidebar_state = 'expanded'
-
-# Streamlit set_page_config method has a 'initial_sidebar_state' argument that controls sidebar state.
-st.set_page_config(initial_sidebar_state=st.session_state.sidebar_state)
-
 
 with st.sidebar:
     st.title("📚🤖 S2QA: Query your Research Space")
 
     st.markdown(
-        f" {get_github_badge()} {get_twitter_badge()}  {get_link_tree_badge()}", unsafe_allow_html=True
+        f" {get_github_badge()} {get_twitter_badge()}  {get_link_tree_badge()}",
+        unsafe_allow_html=True,
     )
     st.markdown("Ask deeper questions about your research space")
-    openai_api_key = st.text_input(
-        "OpenAI API Key", "OPENAI_API_KEY",type="password"
-    )
+    openai_api_key = st.text_input("OpenAI API Key", "OPENAI_API_KEY", type="password")
     openai.api_key = openai_api_key
     "🔑 [Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
     research_space_box = st.empty()
@@ -101,7 +108,7 @@ if button and research_space_query:
         # st.markdown(display_questions(sample_questions))
         with st.expander("📚 Papers in the index: ", expanded=False):
             st.dataframe(documents_to_df(documents))
-        
+
     st.success(
         "###### 🤖 Summary of Research Space *"
         + research_space_query.lower()
@@ -109,12 +116,12 @@ if button and research_space_query:
         + str(num_papers)
         + " papers is ready 🚀"
     )
-        
+
     with st.chat_message("assistant"):
         if "messages" not in st.session_state:
             st.session_state.messages = []
         response = chat_engine.query("elaborate on " + research_space_query)
-        full_response = ''
+        full_response = ""
         placeholder = st.empty()
         for text in response.response_gen:
             # Appending response content if available
@@ -129,6 +136,16 @@ if button and research_space_query:
             full_response = str(full_response) + list_titles
             documents = st.session_state["documents"]
             questions = display_questions(generate_sample_questions(documents))
+            ref.push(
+            {
+                "full_response": full_response,
+                "query": research_space_query,
+                "research_space": research_space_query,
+                "num_papers": num_papers,
+                "full_text": full_text,
+                "timestamp": datetime.datetime.now(pytz.utc).isoformat(),            }
+        )
+
         else:
             questions = ""
         placeholder.markdown(full_response + "\n" + questions)
@@ -136,9 +153,8 @@ if button and research_space_query:
             {"role": "assistant", "content": full_response}
         )
         # st.session_state.messages = []
-    
 
-    
+
 if st.session_state.get("show_chat", False):
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -178,3 +194,14 @@ if st.session_state.get("show_chat", False):
         st.session_state.messages.append(
             {"role": "assistant", "content": full_response}
         )
+        # Push the response and query to the database
+        ref.push(
+            {
+                "full_response": full_response,
+                "query": last_query,
+                "research_space": research_space_query,
+                "num_papers": num_papers,
+                "full_text": full_text,
+                "timestamp": datetime.datetime.now(pytz.utc).isoformat(),            }
+        )
+
