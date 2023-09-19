@@ -28,15 +28,15 @@ from firebase_admin import credentials
 from firebase_admin import db
 
 
-if not firebase_admin._apps:
-    cred = dict(st.secrets["firebase"]['my_project_settings'])
-    # cred = credentials.Certificate("/Users/shaurya/Desktop/s2qa-0512-firebase-adminsdk-fc3mi-066e0bd473.json")
-    default_app = firebase_admin.initialize_app(cred, {'databaseURL' : 'https://s2qa-0512-default-rtdb.firebaseio.com/'})
-else:
-    default_app = firebase_admin.get_app()
+# if not firebase_admin._apps:
+#     cred = dict(st.secrets["firebase"]['my_project_settings'])
+#     # cred = credentials.Certificate("/Users/shaurya/Desktop/s2qa-0512-firebase-adminsdk-fc3mi-066e0bd473.json")
+#     default_app = firebase_admin.initialize_app(cred, {'databaseURL' : 'https://s2qa-0512-default-rtdb.firebaseio.com/'})
+# else:
+#     default_app = firebase_admin.get_app()
 
-# Get a database reference
-ref = db.reference("logs", app=default_app)
+# # Get a database reference
+# ref = db.reference("logs", app=default_app)
 
 url_params = st.experimental_get_query_params()
 num_papers = 30
@@ -195,13 +195,13 @@ if st.session_state.get("show_chat", False):
             {"role": "assistant", "content": full_response}
         )
         # Push the response and query to the database
-        ref.push(
-            {
-                "full_response": full_response,
-                "query": last_query,
-                "research_space": research_space_query,
-                "num_papers": num_papers,
-                "full_text": full_text,
-                "timestamp": datetime.datetime.now(pytz.utc).isoformat(),            }
-        )
+        # ref.push(
+        #     {
+        #         "full_response": full_response,
+        #         "query": last_query,
+        #         "research_space": research_space_query,
+        #         "num_papers": num_papers,
+        #         "full_text": full_text,
+        #         "timestamp": datetime.datetime.now(pytz.utc).isoformat(),            }
+        # )
 
