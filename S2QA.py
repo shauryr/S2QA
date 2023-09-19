@@ -136,15 +136,15 @@ if button and research_space_query:
             full_response = str(full_response) + list_titles
             documents = st.session_state["documents"]
             questions = display_questions(generate_sample_questions(documents))
-            ref.push(
-            {
-                "full_response": full_response,
-                "query": research_space_query,
-                "research_space": research_space_query,
-                "num_papers": num_papers,
-                "full_text": full_text,
-                "timestamp": datetime.datetime.now(pytz.utc).isoformat(),            }
-        )
+        #     ref.push(
+        #     {
+        #         "full_response": full_response,
+        #         "query": research_space_query,
+        #         "research_space": research_space_query,
+        #         "num_papers": num_papers,
+        #         "full_text": full_text,
+        #         "timestamp": datetime.datetime.now(pytz.utc).isoformat(),            }
+        # )
 
         else:
             questions = ""
