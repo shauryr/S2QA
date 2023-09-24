@@ -187,6 +187,7 @@ class SemanticScholarReader(BaseReader):
             If there is an error while performing the search
 
         """
+        results = []
         try:
             results = self.s2.search_paper(query, limit=limit, fields=returned_fields)
         except (requests.HTTPError, requests.ConnectionError, requests.Timeout) as e:
