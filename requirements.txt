@@ -19,3 +19,4 @@ firebase_admin
 pandas
 streamlit
 firebase_admin
+rank_bm25
