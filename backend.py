@@ -33,7 +33,7 @@ def create_index(research_space, num_papers, full_text):
         embed_model=OpenAIEmbedding(embed_batch_size=10),
     )
     # instantiating SemanticScholarReader
-    s2_reader = SemanticScholarReader()
+    s2_reader = SemanticScholarReader(api_key=os.environ["SEMANTIC_SCHOLAR_API_KEY"])
     path_to_store = (
         "./citation_"
         + research_space.replace(" ", "_")
