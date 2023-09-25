@@ -85,7 +85,7 @@ if button and research_space_query:
             st.info("Please add your OpenAI API key to continue.")
             st.stop()
         with st.status("🦙🦙 LlaMa's are working together . . ."):
-            st.write("Creating Index for research space: " + research_space_query)
+            st.write("Fetching papers for research space: " + research_space_query)
             try:
                 index, documents = create_index(
                     research_space_query.lower(), num_papers, full_text
