@@ -98,7 +98,7 @@ if button and research_space_query:
             except Exception as e:
                 st.error("Error creating index: " + str(e))
                 st.error(
-                    "Error creating index. Please check your API key or try reducing the number of papers."
+                    "Please check your API key or try reducing the number of papers."
                 )
                 st.stop()
             st.write("Getting Query Engine ready . . .")

@@ -32,8 +32,6 @@ def generate_search_queries_prompt(question):
 def get_related_questions(query):
     research_template = """You are a search engine expert"""
             
-    openai.api_key = os.getenv("OPENAI_API_KEY")
-
     messages = [{
                 "role": "system",
                 "content": research_template
