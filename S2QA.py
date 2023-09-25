@@ -95,7 +95,8 @@ if button and research_space_query:
                     num_papers=[num_papers],
                     full_text=[full_text],
                 )
-            except:
+            except Exception as e:
+                st.error("Error creating index: " + str(e))
                 st.error(
                     "Error creating index. Please check your API key or try reducing the number of papers."
                 )
