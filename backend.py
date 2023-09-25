@@ -23,6 +23,7 @@ import random
 from llama_index.retrievers import BM25Retriever
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 
 def create_index(research_space, num_papers, full_text):
     service_context = ServiceContext.from_defaults(
