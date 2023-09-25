@@ -12,9 +12,59 @@ import requests
 from typing import List
 import os
 import pandas as pd
+import openai
+import ast
 
 TWITTER_USERNAME = "shauryr"
 
+def generate_search_queries_prompt(question):
+    """Generates the search queries prompt for the given question.
+    Args: question (str): The question to generate the search queries prompt for
+    Returns: str: The search queries prompt for the given question
+    """
+
+    return (
+        f'Please generate four related search queries that align with the initial query: "{question}"'
+        f'Each variation should be presented as a list of strings, following this format: ["query 1", "query 2", "query 3", "query 4"]'
+    )
+
+
+def get_related_questions(query):
+    research_template = """You are a search engine expert"""
+            
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+
+    messages = [{
+                "role": "system",
+                "content": research_template
+            }, {
+                "role": "user",
+                "content": generate_search_queries_prompt(query),
+            }]
+
+    response = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=messages,
+    temperature=0.5,
+    max_tokens=256
+    )
+    related_questions = get_questions(response.choices[0].message.content)
+    related_questions.append(query)
+    return related_questions
+
+def get_questions(response_text):
+    data = response_text.split("\n")
+    data = [ast.literal_eval(item)[0] for item in data]
+    return data
+
+def get_unique_docs(docs):
+    unique_docs_id = []
+    unique_docs = []
+    for doc in docs:
+        if doc.extra_info['paperId'] not in unique_docs:
+            unique_docs_id.append(doc.extra_info['paperId'])
+            unique_docs.append(doc)
+    return unique_docs
 
 class SemanticScholarReader(BaseReader):
     """
@@ -188,8 +238,12 @@ class SemanticScholarReader(BaseReader):
 
         """
         results = []
+        query = get_related_questions(query)
         try:
-            results = self.s2.search_paper(query, limit=limit, fields=returned_fields)
+            for question in query:
+                logging.info(f"Searching for {question}")
+                _results = self.s2.search_paper(question, limit=limit, fields=returned_fields)
+                results.extend(_results[:limit])
         except (requests.HTTPError, requests.ConnectionError, requests.Timeout) as e:
             logging.error(
                 "Failed to fetch data from Semantic Scholar with exception: %s", e
@@ -201,7 +255,7 @@ class SemanticScholarReader(BaseReader):
 
         documents = []
         
-        for item in results[:limit]:
+        for item in results[:limit*len(query)]:
             openAccessPdf = getattr(item, "openAccessPdf", None)
             abstract = getattr(item, "abstract", None)
             title = getattr(item, "title", None)
@@ -228,6 +282,9 @@ class SemanticScholarReader(BaseReader):
             logging.info("Getting full text documents...")
             full_text_documents = self._get_full_text_docs(documents)
             documents.extend(full_text_documents)
+        
+        documents = get_unique_docs(documents)
+        
         return documents
 
 

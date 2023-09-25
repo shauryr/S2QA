@@ -1,5 +1,3 @@
-import openai
-import streamlit as st
 from utils import SemanticScholarReader
 import os
 from llama_index import ServiceContext, VectorStoreIndex
@@ -15,13 +13,10 @@ from llama_index.memory import ChatMemoryBuffer
 from llama_index.query_engine import CitationQueryEngine
 from llama_index.embeddings import OpenAIEmbedding
 import sys
-from llama_index.evaluation import DatasetGenerator, QueryResponseEvaluator
+from llama_index.evaluation import DatasetGenerator
 from llama_index import (
-    SimpleDirectoryReader,
     VectorStoreIndex,
     ServiceContext,
-    LLMPredictor,
-    Response,
 )
 import pickle
 import random
