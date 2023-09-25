@@ -1,5 +1,3 @@
-import openai
-import streamlit as st
 from utils import SemanticScholarReader
 import os
 from llama_index import ServiceContext, VectorStoreIndex
@@ -15,16 +13,14 @@ from llama_index.memory import ChatMemoryBuffer
 from llama_index.query_engine import CitationQueryEngine
 from llama_index.embeddings import OpenAIEmbedding
 import sys
-from llama_index.evaluation import DatasetGenerator, QueryResponseEvaluator
+from llama_index.evaluation import DatasetGenerator
 from llama_index import (
-    SimpleDirectoryReader,
     VectorStoreIndex,
     ServiceContext,
-    LLMPredictor,
-    Response,
 )
 import pickle
 import random
+from llama_index.retrievers import BM25Retriever
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
@@ -32,13 +28,19 @@ logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 
 def create_index(research_space, num_papers, full_text):
     service_context = ServiceContext.from_defaults(
+        chunk_size=256,
         llm=OpenAI(model="gpt-3.5-turbo", temperature=0),
         embed_model=OpenAIEmbedding(embed_batch_size=10),
     )
     # instantiating SemanticScholarReader
     s2_reader = SemanticScholarReader(api_key=os.environ["SEMANTIC_SCHOLAR_API_KEY"])
     path_to_store = (
-        "./citation_" + research_space.replace(" ", "_") + "_" + str(num_papers)+ "_full_text_" + str(full_text)
+        "./citation_"
+        + research_space.replace(" ", "_")
+        + "_"
+        + str(num_papers)
+        + "_full_text_"
+        + str(full_text)
     )
     # loading the data from Semantic Scholar
     if not os.path.exists(path_to_store):
@@ -50,14 +52,16 @@ def create_index(research_space, num_papers, full_text):
             + "papers at: "
             + path_to_store
         )
-        documents = s2_reader.load_data(research_space, limit=num_papers, full_text=full_text)
+        documents = s2_reader.load_data(
+            research_space, limit=num_papers, full_text=full_text
+        )
         try:
             index = VectorStoreIndex.from_documents(
                 documents, service_context=service_context
             )
         except Exception as e:
             logging.info("Error creating index: " + str(e))
-            documents = s2_reader.load_data(research_space, limit=50)
+            documents = s2_reader.load_data(research_space, limit=num_papers)
             index = VectorStoreIndex.from_documents(
                 documents, service_context=service_context
             )
@@ -111,6 +115,7 @@ def citation_query_engine(index, k, streaming, citation_chunk_size):
     logging.info("Done creating index, loading chat . . ")
     chat_engine = CitationQueryEngine.from_args(
         index,
+        # retriever=BM25Retriever.from_defaults(index, similarity_top_k=k),
         similarity_top_k=k,
         streaming=streaming,
         # here we can control how granular citation sources are, the default is 512
