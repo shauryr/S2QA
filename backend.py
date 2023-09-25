@@ -25,7 +25,7 @@ from llama_index.retrievers import BM25Retriever
 
 def create_index(research_space, num_papers, full_text):
     service_context = ServiceContext.from_defaults(
-        chunk_size=512,
+        chunk_size=1024,
         llm=OpenAI(model="gpt-3.5-turbo", temperature=0),
         embed_model=OpenAIEmbedding(embed_batch_size=10),
     )
