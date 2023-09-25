@@ -90,7 +90,7 @@ class SemanticScholarReader(BaseReader):
 
         self.arxiv = arxiv
         self.base_dir = base_dir
-        self.s2 = SemanticScholar()
+        self.s2 = SemanticScholar(timeout=timeout)
         # check for base dir
         if not os.path.exists(self.base_dir):
             os.makedirs(self.base_dir)
