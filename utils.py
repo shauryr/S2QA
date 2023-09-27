@@ -350,7 +350,10 @@ def generate_used_reference_display(source_nodes, used_nodes):
     reference_display = "\n #### 📚 References: \n"
     # for index in used_nodes get the source node and add it to the reference display
     for index in used_nodes:
-        source_node = source_nodes[index - 1]
+        try:
+            source_node = source_nodes[index - 1]
+        except IndexError:
+            return "\n #### 😞 Couldnt Parse References \n"
         metadata = source_node.node.metadata
         reference_display += (
             "[["
