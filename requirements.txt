@@ -21,3 +21,4 @@ pandas
 streamlit
 firebase_admin
 rank_bm25
+seaborn-0.12.2
