@@ -77,7 +77,7 @@ with st.sidebar:
         full_text = True
         num_papers = 5
     button = st.button("Set Research Space", type="primary")
-    num_papers = num_papers/2
+    num_papers = int(num_papers/2)
 
 if button and research_space_query:
     st.session_state["show_chat"] = True
