@@ -236,7 +236,8 @@ class SemanticScholarReader(BaseReader):
 
         """
         results = []
-        query = get_related_questions(query)
+        # query = get_related_questions(query)
+        query = [query]
         try:
             for question in query:
                 logging.info(f"Searching for {question}")
