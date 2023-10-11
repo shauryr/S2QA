@@ -79,6 +79,29 @@ with st.sidebar:
     button = st.button("Set Research Space", type="primary")
     num_papers = int(num_papers/2)
 
+# Welcome to S2QA
+st.markdown(
+    """
+    # 🚀 Welcome to S2QA 🚀
+    ## 🧩 Ask deeper questions about your research
+
+    ### How to use this tool? 🧐
+    
+    📌 **Step One:** Enter your research space (For example: machine learning, large language models, covid 19 vaccine)
+    
+    📌 **Step Two:** Select the number of papers you want to get the answers from
+    
+    📌 **Step Three:** Click on the button "Set Research Space" 🖱️. Please be patient, this could take a few minutes to set up the index
+    
+    📌 **Step Four:** Congrats🎉! Now you have set your research space, you can delve into and ask questions about it
+    
+    📌 **Step Five:** Once a research space is established, you can share the URL with your colleagues 👥 to collaborate on the research space
+    
+    Happy Exploring! 🕵️‍♂️
+    """
+)
+
+
 if button and research_space_query:
     st.session_state["show_chat"] = True
     with st.sidebar:
