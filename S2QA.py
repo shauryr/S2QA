@@ -5,8 +5,7 @@ from backend import (
     citation_query_engine,
     generate_sample_questions,
 )
-import datetime
-import pytz
+from datetime import datetime
 from utils import (
     get_twitter_badge,
     get_link_tree_badge,
@@ -17,29 +16,24 @@ from utils import (
     documents_to_df,
 )
 import openai
+import time
 
 # ?query=deep%20learning%20for%20nlp&num_papers=50&full_text=True
 # TODO update URL with query and num_papers after button press: add share button
 # TODO add github logo in same style as twitter and linktree
 # TODO [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://<your-custom-subdomain>.streamlit.app)
 
-import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import db
+from supabase import create_client, Client
 
 
-# if not firebase_admin._apps:
-#     cred = dict(st.secrets["firebase"]['my_project_settings'])
-#     # cred = credentials.Certificate("/Users/shaurya/Desktop/s2qa-0512-firebase-adminsdk-fc3mi-066e0bd473.json")
-#     default_app = firebase_admin.initialize_app(cred, {'databaseURL' : 'https://s2qa-0512-default-rtdb.firebaseio.com/'})
-# else:
-#     default_app = firebase_admin.get_app()
+SUPABASE_URL = st.secrets.db_credentials.supabase_url
+SUPABASE_KEY = st.secrets.db_credentials.supabase_key
+user_uid = st.secrets.db_credentials.user_uid
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# # Get a database reference
-# ref = db.reference("logs", app=default_app)
 
 url_params = st.experimental_get_query_params()
-num_papers = 30
+num_papers = 10
 query = "large language models"
 full_text = False
 if "query" in url_params:
@@ -50,26 +44,40 @@ if "full_text" in url_params:
     full_text = bool(url_params["full_text"][0])
 
 
+def dump_logs_to_supabase(query, response, success=True):
+    """
+    This function dumps the query and response to a Supabase table.
+    """
+    current_time = datetime.utcfromtimestamp(time.time()).strftime("%Y-%m-%d %H:%M:%S")
+    query_details = {
+        "timestamp": current_time,
+        "query": query,
+        "response": response,
+        "success": success,
+    }
+    supabase.table("s2qa_logs").insert(query_details).execute()
+    return
+
+
 with st.sidebar:
     st.title("📚🤖 S2QA: Query your Research Space")
 
     st.markdown(
-        f" {get_github_badge()} {get_twitter_badge()}  {get_link_tree_badge()}",
+        f" {get_github_badge()} {get_twitter_badge()}  ",
         unsafe_allow_html=True,
     )
     st.markdown("Ask deeper questions about your research space")
-    openai_api_key = st.text_input("OpenAI API Key", "OPENAI_API_KEY", type="password")
-    openai.api_key = openai_api_key
-    "🔑 [Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
+    # openai_api_key = st.text_input("OpenAI API Key", "OPENAI_API_KEY", type="password")
+    openai.api_key = st.secrets.db_credentials.openai_key
+    openai_api_key = openai.api_key
+    # "🔑 [Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
     research_space_box = st.empty()
     # hidden text input placeholder
     research_space_query = st.text_input(
         "Enter your research space, \n e.g. machine learning, large language models, covid 19 vaccine",
         query,
     )
-    num_papers = st.slider(
-        "Number of papers you want to chat with ", 5, 30, num_papers
-    )
+    num_papers = st.slider("Number of papers you want to chat with ", 5, 10, num_papers)
     full_text = st.toggle(
         "Full Text (initial setup is slow as we first download the pdfs: default set to 10 papers)"
     )
@@ -77,7 +85,7 @@ with st.sidebar:
         full_text = True
         num_papers = 5
     button = st.button("Set Research Space", type="primary")
-    num_papers = int(num_papers/2)
+    num_papers = int(num_papers)
 
 # Welcome to S2QA
 st.markdown(
@@ -154,6 +162,7 @@ if button and research_space_query:
             # Displaying the response to the user
             placeholder.markdown(full_response + "▌")
         used_nodes = extract_numbers_in_brackets(full_response)
+        dump_logs_to_supabase(query, full_response, success=True)
         if used_nodes:
             list_titles = generate_used_reference_display(
                 response.source_nodes, used_nodes
@@ -161,16 +170,6 @@ if button and research_space_query:
             full_response = str(full_response) + list_titles
             documents = st.session_state["documents"]
             questions = display_questions(generate_sample_questions(documents))
-            # questions = ""
-        #     ref.push(
-        #     {
-        #         "full_response": full_response,
-        #         "query": research_space_query,
-        #         "research_space": research_space_query,
-        #         "num_papers": num_papers,
-        #         "full_text": full_text,
-        #         "timestamp": datetime.datetime.now(pytz.utc).isoformat(),            }
-        # )
 
         else:
             questions = ""
@@ -205,7 +204,7 @@ if st.session_state.get("show_chat", False):
                 full_response += text
                 # Displaying the response to the user
                 message_placeholder.markdown(full_response + "▌")
-
+            dump_logs_to_supabase(last_query, full_response, success=True)
             used_nodes = extract_numbers_in_brackets(full_response)
             if used_nodes:
                 list_titles = generate_used_reference_display(
@@ -221,14 +220,3 @@ if st.session_state.get("show_chat", False):
         st.session_state.messages.append(
             {"role": "assistant", "content": full_response}
         )
-        # Push the response and query to the database
-        # ref.push(
-        #     {
-        #         "full_response": full_response,
-        #         "query": last_query,
-        #         "research_space": research_space_query,
-        #         "num_papers": num_papers,
-        #         "full_text": full_text,
-        #         "timestamp": datetime.datetime.now(pytz.utc).isoformat(),            }
-        # )
-
