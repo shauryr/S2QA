@@ -162,7 +162,7 @@ if button and research_space_query:
             # Displaying the response to the user
             placeholder.markdown(full_response + "▌")
         used_nodes = extract_numbers_in_brackets(full_response)
-        dump_logs_to_supabase(query, full_response, success=True)
+        dump_logs_to_supabase(research_space_query, full_response, success=True)
         if used_nodes:
             list_titles = generate_used_reference_display(
                 response.source_nodes, used_nodes
