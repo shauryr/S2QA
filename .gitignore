@@ -1,6 +1,9 @@
 s2api.py
 constants.py
-__pycache__/*.pyc
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
 .gitignore
 notebooks/pdfs/*.pdf
 notebooks/constants.py

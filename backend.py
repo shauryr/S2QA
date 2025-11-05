@@ -1,4 +1,4 @@
-from utils import SemanticScholarReader
+from core import SemanticScholarReader
 import os
 from llama_index import ServiceContext, VectorStoreIndex
 from llama_index import (

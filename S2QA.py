@@ -6,7 +6,7 @@ from backend import (
     generate_sample_questions,
 )
 from datetime import datetime
-from utils import (
+from core import (
     get_twitter_badge,
     get_link_tree_badge,
     get_github_badge,
